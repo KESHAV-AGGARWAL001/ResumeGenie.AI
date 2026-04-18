@@ -1,0 +1,103 @@
+{
+  "userId": "test-user-123",
+  "personalInfo": {
+    "name": "Jane Developer",
+    "email": "jane.dev@example.com",
+    "phone": "+1-555-123-4567",
+    "location": "San Francisco, CA"
+  },
+  "socialProfiles": {
+    "github": "https://github.com/janedev",
+    "linkedin": "https://linkedin.com/in/janedev",
+    "leetcode": "https://leetcode.com/janedev",
+    "portfolio": "https://janedev.com"
+  },
+  "experience": [
+    {
+      "id": "exp1",
+      "company": "Tech Innovations Inc",
+      "position": "Senior Software Engineer",
+      "location": "San Francisco, CA",
+      "startDate": "Jan 2022",
+      "endDate": "Present",
+      "techStack": ["React", "Node.js", "PostgreSQL", "AWS"],
+      "bulletPoints": [
+        "Led development of microservices architecture serving 1M+ users",
+        "Reduced API response time by 40% through optimization",
+        "Mentored team of 5 junior engineers"
+      ]
+    },
+    {
+      "id": "exp2",
+      "company": "StartupXYZ",
+      "position": "Full Stack Developer",
+      "location": "Remote",
+      "startDate": "Jun 2020",
+      "endDate": "Dec 2021",
+      "techStack": ["Vue.js", "Python", "MongoDB"],
+      "bulletPoints": [
+        "Built real-time collaboration features using WebSockets",
+        "Implemented CI/CD pipeline reducing deployment time by 60%"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj1",
+      "name": "AI Resume Builder",
+      "techStack": ["React", "Express", "Docker", "LaTeX"],
+      "link": "https://github.com/janedev/resume-builder",
+      "bulletPoints": [
+        "Created form-based resume builder with LaTeX compilation",
+        "Integrated Firebase for authentication and data persistence"
+      ]
+    },
+    {
+      "id": "proj2",
+      "name": "Code Snippet Manager",
+      "techStack": ["TypeScript", "Next.js", "Prisma"],
+      "link": "https://github.com/janedev/snippets",
+      "bulletPoints": [
+        "Built Chrome extension with 10K+ active users",
+        "Implemented syntax highlighting for 20+ languages"
+      ]
+    }
+  ],
+  "skills": {
+    "languages": ["JavaScript", "TypeScript", "Python", "Java"],
+    "frameworks": ["React", "Node.js", "Express", "Next.js", "Django"],
+    "tools": ["Git", "Docker", "AWS", "Firebase", "PostgreSQL"],
+    "databases": ["MongoDB", "PostgreSQL", "Redis"]
+  },
+  "achievements": [
+    "Won Best Hack Award at TechCrunch Disrupt 2023",
+    "Published article on Medium with 50K+ views",
+    "Speaker at React Conference 2023"
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect",
+      "issuer": "Amazon Web Services",
+      "date": "2023"
+    },
+    {
+      "name": "Google Cloud Professional",
+      "issuer": "Google",
+      "date": "2022"
+    }
+  ],
+  "education": [
+    {
+      "institution": "University of California, Berkeley",
+      "degree": "Bachelor of Science in Computer Science",
+      "location": "Berkeley, CA",
+      "startDate": "2016",
+      "endDate": "2020",
+      "gpa": "3.9/4.0",
+      "honors": ["Dean's List (All Semesters)", "Summa Cum Laude"]
+    }
+  ],
+  "metadata": {
+    "templateVersion": "deedy-reversed-v1"
+  }
+}

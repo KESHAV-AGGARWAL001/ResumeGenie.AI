@@ -1,0 +1,166 @@
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+
+\pagestyle{fancy}
+\fancyhf{} 
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+
+\begin{center}
+    {\Huge \scshape Keshav Mittal} \\ \vspace{1pt}
+    Noida, INDIA \\ 
+    \small \href{mailto:keshav.mittal1105@gmail.com}{keshav.mittal1105@gmail.com} $|$ 
+    \href{tel:+91-9413514915}{+91-9413514915} $|$ 
+    \href{https://linkedin.com/in/keshav-mittal}{LinkedIn} $|$
+    \href{https://github.com/keshav-mittal}{GitHub}
+\end{center}
+
+
+\section{Education}
+\resumeSubHeadingListStart
+
+      \resumeSubheading
+      {National Institute of Technology, Hamirpur}{Hamirpur}
+      {Bachelor of Technology in Computer Science and Engineering}{Dec 2021 -- May 2025}
+      \resumeSubHeadingListEnd
+
+\section{Experience}
+\resumeSubHeadingListStart
+
+      \resumeSubheading
+      {Ultimate Kronos Group (UKG)}{Noida, INDIA}
+      {Software Development Engineer 1}{Aug 2025 -- Present}
+      \resumeItemListStart
+      \resumeItem{Re-architected a mission-critical payroll API by shifting from cache-based retrieval to PostgreSQL paginated querying (65k row chunks), eliminating timeout failures and reducing infrastructure cost.}
+\resumeItem{Created a GitHub Actions workflow to automate GCP secret migrations using Terraform, Python; required for the Deploy Service pipeline and project creation on GCP saved time (20 min/project).}
+\resumeItem{Building an AI diagnostic agent integrating Teams, GitHub, Jira, and PES APIs to surface swarm issues and accelerate root-cause identification.}
+\resumeItemListEnd
+
+      \resumeSubheading
+      {WebSonix}{Mumbai, INDIA}
+      {Software Developer Intern}{May 2024 -- Nov 2024}
+      \resumeItemListStart
+      \resumeItem{Engineered and deployed an innovative web portal using ReactJS with Firebase backend services.}
+\resumeItem{Interacted with 200+ potential customers, preparing the product for launch and building community interest.}
+\resumeItem{Optimized performance by reducing response time from 3s to under 1s.}
+\resumeItemListEnd
+\resumeSubHeadingListEnd
+
+\section{Projects}
+\resumeSubHeadingListStart
+
+      \resumeProjectHeading
+      {\textbf{ResumeGenie.AI} $|$ \emph{React.js, TypeScript, Node.js, Express.js, shadcn/ui, Firebase, GenAI, Docker}}{}
+      \resumeItemListStart
+      \resumeItem{Architected an AI-powered resume platform with PDF parsing, LaTeX editing, and role-specific suggestions.}
+\resumeItem{Designed RESTful APIs in Node.js/Express for resume parsing and AI scoring, delivering 25 highly matched job recommendations per call.}
+\resumeItem{Integrated Firebase Auth for secure Google login and Firestore for managing editable LaTeX resume template.}
+\resumeItem{Crafted an n8n-based AI agent that scrapes live job listings with 70\%+ resume–JD match and surfaces direct application links.}
+\resumeItemListEnd
+
+      \resumeProjectHeading
+      {\textbf{Legal-text Summarizer} $|$ \emph{Python, Spring Boot, HuggingFace, GenAI, Dropbox}}{}
+      \resumeItemListStart
+      \resumeItem{Fine-tuned a T5-based model for legal-text summarization through data preprocessing and task-specific training, improving summarization accuracy by 23\% over baseline.}
+\resumeItem{Developed a Spring Boot service integrating Gemini 2.0 Flash and Dropbox to generate a dataset of 7,050 summaries with facts, arguments, and statutes via Generative AI APIs.}
+\resumeItem{Achieved a cosine similarity of 31.68\% compared to the Illegal-Bert model from IIT Kharagpur and automated weekly scraping of ˜200 legal cases/month using BeautifulSoup to expand the dataset.}
+\resumeItemListEnd
+\resumeSubHeadingListEnd
+
+\section{Technical Skills}
+\begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+\textbf{Languages}{: C++, Java, Python, HTML, CSS, JavaScript} \\ 
+\textbf{Frameworks}{: Next.js, Spring Boot, React.js, Node.js, Express.js} \\ 
+\textbf{Developer Tools}{: Git, GitHub, Postman, Redis, Docker, Kubernetes, Terraform, SOLID, HLD, LLD, OOPS, DBMS, OS, CN} \\ 
+\textbf{Libraries/Databases}{: MongoDB, MySQL, PostgreSQL} 
+    }}
+\end{itemize}
+
+\section{\textbf{Achievements}}
+\resumeItemListStart
+    \setlength{\itemsep}{-0.1pt} % Adjust the spacing between items
+    \resumeItem{Solved 1500+ DSA problems on LeetCode (top 7.89\%, rating 1793) and 550+ on CodeChef.}
+    \resumeItem{Top {5\%} among 5000+ in Adobe’s {GenSolve Hackathon}, showcasing strong team collaboration.}
+    \resumeItem{Secured 3rd rank (NITH) in Codekaze with an AIR 717.}
+    \resumeItem{{Runner-Up} in Inter-Year Table Tennis Doubles, 2025 at {NIT Hamirpur}.}
+\resumeItemListEnd
+
+
+\end{document}

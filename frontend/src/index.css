@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  --animate-gradient-x: gradient-x 3s ease infinite;
+  --animate-fade-in-up: fade-in-up 0.8s ease-out forwards;
+
+  @keyframes gradient-x {
+    0%, 100% {
+      background-size: 200% 200%;
+      background-position: left center;
+    }
+    50% {
+      background-size: 200% 200%;
+      background-position: right center;
+    }
+  }
+
+  @keyframes fade-in-up {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+:root {
+  color-scheme: light; /* Force light mode defaults */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+
+  color: #111827; /* Rich Black */
+  background-color: #FAFAFA; /* Off-White base */
+  background-image:
+    radial-gradient(at 0% 0%, hsla(253,16%,7%,0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.04) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(339,49%,30%,0.04) 0px, transparent 50%);
+  background-attachment: fixed;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  letter-spacing: -0.025em;
+}
+
+/* Modern Input Styles */
+input, textarea, select {
+  font-family: 'Inter', sans-serif;
+  background-color: white !important;
+  color: #111827 !important; /* Force dark text */
+  border: 1px solid #E5E7EB; /* Subtle gray */
+  border-radius: 0.5rem; /* rounded-lg */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+}
+
+input:hover, textarea:hover, select:hover {
+  border-color: #D1D5DB;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #9333ea; /* Purple-600 */
+  box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.1); 
+  transform: translateY(-1px);
+}
+
+/* Premium Card Styles */
+.card-glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Better Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* Gray-300 */
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* Gray-400 */
+}

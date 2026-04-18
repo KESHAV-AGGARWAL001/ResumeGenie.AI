@@ -1,0 +1,139 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1in}
+
+\urlstyle{same}
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Section formatting
+\titleformat{\section}{
+  \vspace{-8pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-6pt}]
+
+% Consistent bullet formatting
+\setlist[itemize,1]{leftmargin=0.15in,label=\textbullet}
+\setlist[itemize,2]{leftmargin=0.3in,label=\small$\bullet$}
+
+% Custom commands
+\newcommand{\resumeSubheading}[4]{
+  \item
+  \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+    \textbf{#1} & #2 \\
+    \textit{#3} & \textit{#4} \\
+  \end{tabular*}\vspace{-6pt}
+}
+
+\newcommand{\resumeItem}[1]{
+  \item \small{#1 \vspace{-2pt}}
+}
+
+\begin{document}
+
+%-------------------- Header --------------------
+\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+  \textbf{\LARGE Keshav Mittal} & Email: \href{mailto:keshav.mittal1105@gmail.com}{keshav.mittal1105@gmail.com} \\
+  \href{https://github.com/keshav-mittal}{github.com/keshav-mittal} & Mobile: +91-9413514915 \\
+\end{tabular*}
+
+%-------------------- Education --------------------
+\section{Education}
+\begin{itemize}
+  \resumeSubheading
+    {National Institute of Technology, Hamirpur}{Hamirpur, India}
+    {Bachelor of Technology in Computer Science and Engineering}{Dec 2021 -- May 2025}
+  \item \small{\textbf{GPA:} 9.07 / 10.0}
+\end{itemize}
+
+%-------------------- Skills --------------------
+\section{Skills}
+\begin{itemize}
+  \item \small{\textbf{Languages:} C++, Java, Python, HTML, CSS, JavaScript}
+  \item \small{\textbf{Frameworks:} Next.js, Spring Boot, React.js, Node.js, Express.js}
+  \item \small{\textbf{Tools:} Git, GitHub, Postman, Redis, Docker, Kubernetes, Terraform, SOLID, HLD, LLD, OOPS, DBMS, OS, CN}
+  \item \small{\textbf{Databases:} MongoDB, MySQL, PostgreSQL}
+\end{itemize}
+
+%-------------------- Experience --------------------
+\section{Experience}
+\begin{itemize}
+
+  \resumeSubheading
+    {Ultimate Kronos Group (UKG)}{Noida, India}
+    {Software Development Engineer 1}{Aug 2025 -- Present}
+
+  \begin{itemize}
+    \resumeItem{Re-architected a mission-critical payroll API by shifting from cache-based retrieval to PostgreSQL paginated querying (65k row chunks), eliminating timeout failures and reducing infrastructure cost.}
+    \resumeItem{Created a GitHub Actions workflow to automate GCP secret migrations using Terraform and Python, reducing deployment time by 20 minutes per project.}
+    \resumeItem{Building an AI diagnostic agent integrating Teams, GitHub, Jira, and PES APIs to surface swarm issues and accelerate root-cause identification.}
+  \end{itemize}
+
+  \resumeSubheading
+    {WebSonix}{Mumbai, India}
+    {Software Developer Intern}{May 2024 -- Nov 2024}
+
+  \begin{itemize}
+    \resumeItem{Engineered and deployed a web portal using ReactJS with Firebase backend services.}
+    \resumeItem{Engaged with 200+ potential customers, contributing to product launch preparation and community growth.}
+    \resumeItem{Optimized system performance, reducing response time from 3 seconds to under 1 second.}
+  \end{itemize}
+
+\end{itemize}
+
+%-------------------- Projects --------------------
+\section{Projects}
+\begin{itemize}
+
+  \resumeSubheading
+    {ResumeGenie.AI}{}
+    {React.js, TypeScript, Node.js, Express.js, Firebase, GenAI, Docker}{}
+
+  \begin{itemize}
+    \resumeItem{Architected an AI-powered resume platform with PDF parsing, LaTeX editing, and role-specific suggestions.}
+    \resumeItem{Designed RESTful APIs delivering 25 highly matched job recommendations per call.}
+    \resumeItem{Integrated Firebase Auth for secure Google login and Firestore for managing editable LaTeX templates.}
+    \resumeItem{Developed an n8n-based AI agent scraping live job listings with 70\%+ resume–JD match and direct application links.}
+  \end{itemize}
+
+  \resumeSubheading
+    {Legal-text Summarizer}{}
+    {Python, Spring Boot, HuggingFace, GenAI, Dropbox}{}
+
+  \begin{itemize}
+    \resumeItem{Fine-tuned a T5-based model for legal text summarization, improving accuracy by 23\% over baseline.}
+    \resumeItem{Built a Spring Boot service integrating Gemini 2.0 Flash and Dropbox to generate 7,050 AI-generated summaries.}
+    \resumeItem{Achieved 31.68\% cosine similarity vs Illegal-BERT (IIT Kharagpur) and automated scraping of 200+ cases/month using BeautifulSoup.}
+  \end{itemize}
+
+\end{itemize}
+
+%-------------------- Achievements --------------------
+\section{Achievements}
+\begin{itemize}
+  \item \small{Solved 1500+ DSA problems on LeetCode (Top 7.89\%, rating 1793) and 550+ on CodeChef.}
+  \item \small{Top 5\% among 5000+ participants in Adobe’s GenSolve Hackathon.}
+  \item \small{Secured 3rd Rank (NITH) in Codekaze with AIR 717.}
+  \item \small{Runner-Up in Inter-Year Table Tennis Doubles, 2025 at NIT Hamirpur.}
+\end{itemize}
+
+\end{document}

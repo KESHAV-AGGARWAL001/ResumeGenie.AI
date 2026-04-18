@@ -1,0 +1,39 @@
+---
+description: ResumeGenie.AI product vision and architecture — AI Career Assistant platform
+alwaysApply: true
+---
+
+# ResumeGenie.AI Vision
+
+ResumeGenie.AI is an **AI-powered career assistant** that helps job seekers create optimized resumes, understand their career gaps, and improve their chances of getting interviews.
+
+The platform is **not just a resume builder** — it is evolving into a full **AI Career Assistant** that combines:
+
+- Structured resume creation (form-based builder)  
+- Multi-template LaTeX rendering (Deedy, Jakes, Modern, ModernCV, ModernDeedy)  
+- Real-time LaTeX editing + PDF preview  
+- AI resume analysis and job-description alignment  
+
+## Core Capabilities (Summary)
+
+- **Structured Resume Builder** — Multi-step form that builds a `resumeData` object with sections like Personal Info, Experience, Projects, Skills, Education, Achievements, Certifications.  
+- **Multi-Template Rendering** — `resumeData + templateId → LaTeX → Docker XeLaTeX → PDF` using a template engine and a custom LaTeX Docker image.  
+- **Real-Time Editing** — Monaco-based LaTeX editor with one-click compile to PDF and right-hand preview.  
+- **AI Analysis** — PDF upload + text extraction (`pdf-parse`) or (future) in-app resume text, analyzed by GPT-4o-mini for scores, issues, bullet rewrites, and JD match.  
+
+## Tech Snapshot
+
+- **Frontend** — React 19, Vite 7, TailwindCSS 4, Monaco, Firebase (Auth + Firestore).  
+- **Backend** — Node + Express 5, Joi, multer, pdf-parse, Docker XeLaTeX with `blang/latex:ctanfull`.  
+- **AI Layer** — OpenAI GPT-4o-mini for scoring, bullet rewriting, keyword analysis, and JD alignment.  
+
+## Key Flows
+
+- **Creation** — Form/structured data or LaTeX editor → LaTeX → Docker XeLaTeX → PDF preview/download.  
+- **Analysis** — PDF upload → text extraction → AI analysis → scores, issues, bullet improvements, missing keywords.  
+
+For the full vision and long-term roadmap, see:
+
+- `README.md`  
+- `docs/PRODUCT-VISION.md`  
+
