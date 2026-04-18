@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const hpp = require('hpp');
 const path = require('path');
 
 // Initialize Firebase Admin SDK (must be before middleware imports)
@@ -12,28 +14,45 @@ const templateRoute = require('./routes/template');
 const resumeRoute = require('./routes/resume');
 const aiRoute = require('./routes/ai');
 const uploadRoute = require('./routes/upload');
+const paymentsRoute = require('./routes/payments');
+const careerRoute = require('./routes/career');
 
-// Import auth middleware
+// Import middleware
 const { requireAuth, optionalAuth } = require('./middleware/authMiddleware');
+const { requireUsage, attachTier } = require('./middleware/usageMiddleware');
+const {
+    globalLimiter,
+    compileLimiter,
+    aiLimiter,
+    uploadLimiter,
+    templateLimiter,
+} = require('./middleware/rateLimiter');
+
+// Import cleanup scheduler
+const { scheduleCleanup } = require('./utils/cleanup');
 
 const app = express();
 
+// ─── Security Headers ──────────────────────────────────────────────
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable CSP for PDF iframe rendering
+    crossOriginEmbedderPolicy: false,
+}));
+app.use(hpp());
+
 // ─── CORS Configuration ─────────────────────────────────────────────
-// Restrict to known origins (add your production domain here)
 const allowedOrigins = [
-    'http://localhost:5173',    // Vite dev server
-    'http://localhost:3000',    // Alternative dev port
+    'http://localhost:5173',
+    'http://localhost:3000',
     'http://127.0.0.1:5173',
 ];
 
-// Add production origin from env if set
 if (process.env.FRONTEND_URL) {
     allowedOrigins.push(process.env.FRONTEND_URL);
 }
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, curl, server-to-server)
         if (!origin) return callback(null, true);
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
@@ -45,7 +64,15 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.use(express.json());
+// ─── Global Rate Limit ─────────────────────────────────────────────
+app.use(globalLimiter);
+
+// ─── Stripe Webhook (raw body — MUST be before express.json) ───────
+// Stripe needs the raw body to verify webhook signatures
+app.use('/payments/webhook', express.raw({ type: 'application/json' }));
+
+// ─── Body Parsing ──────────────────────────────────────────────────
+app.use(express.json({ limit: '1mb' }));
 
 // ─── Health Check (public, no auth) ─────────────────────────────────
 app.get('/health', (req, res) => {
@@ -57,26 +84,17 @@ app.get('/health', (req, res) => {
 });
 
 // ─── Route Registration ─────────────────────────────────────────────
-// 
-// Auth policy per route:
-//   /compile    → requireAuth  (expensive: Docker + CPU)
-//   /ai         → requireAuth  (expensive: Gemini API calls cost money)
-//   /upload     → requireAuth  (file uploads must be tied to a user)
-//   /resume     → requireAuth  (user-specific resume operations)
-//   /template   → optionalAuth (browsing templates is OK for anonymous users)
-//   /uploads    → static files (served as-is, no auth needed)
-//   /health     → public       (no auth)
-
-app.use('/compile', requireAuth, compileRoute);
-app.use('/ai', requireAuth, aiRoute);
-app.use('/upload', requireAuth, uploadRoute);
-app.use('/resume', requireAuth, resumeRoute);
-app.use('/template', optionalAuth, templateRoute);
+app.use('/compile', requireAuth, attachTier(), compileLimiter, requireUsage('compilationsToday'), compileRoute);
+app.use('/ai', requireAuth, attachTier(), aiLimiter, requireUsage('aiAnalysesToday'), aiRoute);
+app.use('/upload', requireAuth, uploadLimiter, uploadRoute);
+app.use('/resume', requireAuth, templateLimiter, resumeRoute);
+app.use('/template', optionalAuth, templateLimiter, templateRoute);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/payments', paymentsRoute);
+app.use('/career', requireAuth, attachTier(), aiLimiter, requireUsage('aiAnalysesToday'), careerRoute);
 
 // ─── Global Error Handler ───────────────────────────────────────────
 app.use((err, req, res, next) => {
-    // Handle CORS errors
     if (err.message && err.message.includes('not allowed by CORS')) {
         return res.status(403).json({ error: err.message });
     }
@@ -88,10 +106,14 @@ app.use((err, req, res, next) => {
     });
 });
 
+// ─── File Cleanup Scheduler (runs hourly) ───────────────────────────
+scheduleCleanup();
+
 // ─── Start Server ───────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`CORS allowed origins: ${allowedOrigins.join(', ')}`);
-    console.log(`Auth middleware active: requireAuth on /compile, /ai, /upload, /resume`);
-}); 
+    console.log(`Rate limiting: active on all endpoints`);
+    console.log(`Security: helmet + hpp enabled`);
+});

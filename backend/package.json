@@ -22,7 +22,11 @@
     "multer": "^2.0.1",
     "nodemon": "^1.0.2",
     "openai": "^6.25.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
     "pdf-parse": "^2.4.5",
+    "stripe": "^17.7.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

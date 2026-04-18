@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import LandingPage from './components/LandingPage';
 import TemplatesPage from './components/TemplatesPage';
+import PricingPage from './components/PricingPage';
 import Editor from './components/Editor';
 import Preview from './components/Preview';
 import FormBuilder from './components/FormBuilder/FormBuilder';
@@ -10,6 +11,9 @@ import { auth, provider, db } from './firebase';
 import { signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { apiGet, apiPost, BACKEND_URL } from './utils/api';
+import UsageBanner from './components/UsageBanner';
+import CareerInsights from './components/CareerInsights';
+import toast, { Toaster } from 'react-hot-toast';
 
 const DEFAULT_LATEX = `\\documentclass[letterpaper,11pt]{article}
 % ... (Deedy template content here or load from backend)
@@ -17,97 +21,28 @@ const DEFAULT_LATEX = `\\documentclass[letterpaper,11pt]{article}
 
 const INITIAL_RESUME_DATA = {
   personalInfo: {
-    name: "Keshav Mittal",
-    email: "keshav.mittal1105@gmail.com",
-    phone: "+91-9413514915",
-    location: "Noida, INDIA"
+    name: "",
+    email: "",
+    phone: "",
+    location: ""
   },
   socialProfiles: {
-    linkedin: "https://linkedin.com/in/keshav-mittal",
-    github: "https://github.com/keshav-mittal",
-    leetcode: "https://leetcode.com/keshav-mittal",
-    codechef: "https://www.codechef.com/users/keshav-mittal"
+    linkedin: "",
+    github: "",
+    leetcode: "",
+    codechef: ""
   },
-  experience: [
-    {
-      id: "exp1",
-      company: "Ultimate Kronos Group (UKG)",
-      position: "Software Development Engineer 1",
-      location: "Noida, INDIA",
-      startDate: "Aug 2025",
-      endDate: "Present",
-      techStack: ["Java", "PostgreSQL", "Terraform", "Python", "GCP"],
-      bulletPoints: [
-        "Re-architected a mission-critical payroll API by shifting from cache-based retrieval to PostgreSQL paginated querying (65k row chunks), eliminating timeout failures and reducing infrastructure cost.",
-        "Created a GitHub Actions workflow to automate GCP secret migrations using Terraform, Python; required for the Deploy Service pipeline and project creation on GCP saved time (20 min/project).",
-        "Building an AI diagnostic agent integrating Teams, GitHub, Jira, and PES APIs to surface swarm issues and accelerate root-cause identification."
-      ]
-    },
-    {
-      id: "exp2",
-      company: "WebSonix",
-      position: "Software Developer Intern",
-      location: "Mumbai, INDIA",
-      startDate: "May 2024",
-      endDate: "Nov 2024",
-      techStack: ["ReactJS", "Firebase"],
-      bulletPoints: [
-        "Engineered and deployed an innovative web portal using ReactJS with Firebase backend services.",
-        "Interacted with 200+ potential customers, preparing the product for launch and building community interest.",
-        "Optimized performance by reducing response time from 3s to under 1s."
-      ]
-    }
-  ],
-  projects: [
-    {
-      id: "proj1",
-      name: "ResumeGenie.AI",
-      techStack: ["React.js", "TypeScript", "Node.js", "Express.js", "Gemini 2.0", "Firebase", "Docker", "XeLaTeX"],
-      link: "",
-      bulletPoints: [
-        "Engineered a comprehensive AI Career Consultant using Gemini 2.0 Flash, delivering real-time resume analysis, scoring, and role-specific optimizations with 95%+ accuracy.",
-        "Developed a dynamic LaTeX multi-template engine supporting professional layouts (Deedy, Jakes, ModernCV), enabling instant design synchronization via Express.js.",
-        "Architected a scalable PDF compilation pipeline leveraging Dockerized XeLaTeX environments, reducing document generation latency to <2 seconds.",
-        "Integrated Firebase Auth and Firestore for secure profile management, allowing users to apply AI-driven revisions directly to their structured resume data."
-      ]
-    },
-    {
-      id: "proj2",
-      name: "Legal-text Summarizer",
-      techStack: ["Python", "Spring Boot", "HuggingFace", "GenAI", "Dropbox"],
-      link: "",
-      bulletPoints: [
-        "Fine-tuned a T5-based model for legal-text summarization through data preprocessing and task-specific training, improving summarization accuracy by 23% over baseline.",
-        "Developed a Spring Boot service integrating Gemini 2.0 Flash and Dropbox to generate a dataset of 7,050 summaries with facts, arguments, and statutes via Generative AI APIs.",
-        "Achieved a cosine similarity of 31.68% compared to the Illegal-Bert model from IIT Kharagpur and automated weekly scraping of ˜200 legal cases/month using BeautifulSoup to expand the dataset."
-      ]
-    }
-  ],
+  experience: [],
+  projects: [],
   skills: {
-    languages: ["C++", "Java", "Python", "HTML", "CSS", "JavaScript"],
-    frameworks: ["Next.js", "Spring Boot", "React.js", "Node.js", "Express.js"],
-    databases: ["MongoDB", "MySQL", "PostgreSQL"],
-    tools: ["Git", "GitHub", "Postman", "Redis", "Docker", "Kubernetes", "Terraform", "SOLID", "HLD", "LLD", "OOPS", "DBMS", "OS", "CN"]
+    languages: [],
+    frameworks: [],
+    databases: [],
+    tools: []
   },
-  achievements: [
-    "Solved 1500+ DSA problems on LeetCode (top 7.89%, rating 1793) and 550+ on CodeChef.",
-    "Top 5% among 5000+ in Adobe’s GenSolve Hackathon, showcasing strong team collaboration.",
-    "Secured 3rd rank (NITH) in Codekaze with an AIR 717.",
-    "Runner-Up in Inter-Year Table Tennis Doubles, 2025 at NIT Hamirpur."
-  ],
+  achievements: [],
   certifications: [],
-  education: [
-    {
-      id: "edu1",
-      institution: "National Institute of Technology, Hamirpur",
-      degree: "Bachelor of Technology in Computer Science and Engineering",
-      location: "Hamirpur",
-      startDate: "Dec 2021",
-      endDate: "May 2025",
-      gpa: "9.07 / 10.0",
-      honors: []
-    }
-  ]
+  education: []
 };
 
 export default function App() {
@@ -116,10 +51,26 @@ export default function App() {
   const [resumeData, setResumeData] = useState(INITIAL_RESUME_DATA);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [viewingTemplates, setViewingTemplates] = useState(false); // Added state
+  const [viewingTemplates, setViewingTemplates] = useState(false);
+  const [viewingPricing, setViewingPricing] = useState(false);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [saveStatus, setSaveStatus] = useState('');
+  const [subscription, setSubscription] = useState({ tier: 'free', status: 'active' });
+  const autoSaveTimerRef = useRef(null);
+
+  // Handle payment redirect params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get('payment');
+    if (paymentStatus === 'success') {
+      toast.success('Payment successful! Your plan has been upgraded.');
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (paymentStatus === 'cancelled') {
+      toast('Payment cancelled.', { icon: 'info' });
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   // Load template from backend when component mounts
   useEffect(() => {
@@ -128,6 +79,18 @@ export default function App() {
     const unsubscribe = auth.onAuthStateChanged(async (authUser) => {
       if (authUser) {
         setUser(authUser);
+
+        // Fetch subscription status
+        try {
+          const subRes = await apiGet('/payments/status');
+          if (subRes.ok) {
+            const subData = await subRes.json();
+            setSubscription(subData.subscription || { tier: 'free', status: 'active' });
+          }
+        } catch (e) {
+          // Subscription fetch failed — default to free
+        }
+
         // Try to load user's saved resume data
         const docRef = doc(db, 'userResumes', authUser.uid);
         const docSnap = await getDoc(docRef);
@@ -228,6 +191,29 @@ export default function App() {
     }
   };
 
+  // Auto-save: debounced save 30s after last change
+  useEffect(() => {
+    if (!user) return;
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    autoSaveTimerRef.current = setTimeout(() => {
+      const userDocRef = doc(db, 'userResumes', user.uid);
+      setDoc(userDocRef, {
+        resumeData: resumeData,
+        latex: latex,
+        updatedAt: new Date().toISOString()
+      }).then(() => {
+        setSaveStatus('Auto-saved');
+        setTimeout(() => setSaveStatus(''), 2000);
+      }).catch(() => {});
+    }, 30000);
+
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [resumeData, latex, user]);
+
   // Handle form data changes
   const handleFormDataChange = useCallback((data) => {
     setResumeData(data);
@@ -290,6 +276,10 @@ export default function App() {
 
       if (!res.ok) {
         const errorData = await res.json();
+        if (res.status === 429 && errorData.upgrade) {
+          toast.error('Daily compilation limit reached. Upgrade to Pro for unlimited!', { duration: 5000 });
+          throw new Error(errorData.message || 'Limit reached');
+        }
         throw new Error(errorData.error || 'Compilation failed');
       }
 
@@ -325,26 +315,43 @@ export default function App() {
     }
   };
 
+  if (viewingPricing) {
+    return (
+      <PricingPage
+        currentTier={subscription.tier}
+        onBack={() => setViewingPricing(false)}
+      />
+    );
+  }
+
   if (viewingTemplates) {
     return <TemplatesPage onBack={() => setViewingTemplates(false)} onSelect={handleTemplateSelect} />;
   }
 
   if (!user) {
-
     return (
-      <div className="min-h-screen font-sans text-gray-900">
-        <header className="p-6 flex justify-between items-center max-w-7xl mx-auto w-full z-10 relative">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-              ResumeGenie.AI
-            </span>
+      <div className="min-h-screen font-sans text-slate-900">
+        <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center max-w-7xl mx-auto w-full">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-200/50">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            </div>
+            <span className="text-xl font-black gradient-text">ResumeGenie.AI</span>
           </div>
-          <button
-            onClick={signIn}
-            className="text-sm font-semibold text-gray-600 hover:text-purple-600 transition-colors"
-          >
-            Log in
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setViewingTemplates(true)}
+              className="hidden sm:block px-4 py-2 text-sm font-semibold text-slate-600 hover:text-purple-600 transition-colors"
+            >
+              Templates
+            </button>
+            <button
+              onClick={signIn}
+              className="px-5 py-2.5 text-sm font-bold text-white rounded-xl bg-gradient-to-r from-purple-600 to-violet-600 shadow-lg shadow-purple-200/50 hover:shadow-xl hover:shadow-purple-300/50 hover:-translate-y-0.5 transition-all duration-300"
+            >
+              Log in
+            </button>
+          </div>
         </header>
         <LandingPage onSignIn={signIn} onViewTemplates={() => setViewingTemplates(true)} />
       </div>
@@ -352,76 +359,131 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen w-full font-sans text-gray-900 flex flex-col bg-gray-50/50">
+    <div className="min-h-screen w-full font-sans text-slate-900 flex flex-col bg-slate-50/80">
+      <Toaster position="top-right" toastOptions={{
+        style: { fontSize: '13px', borderRadius: '16px', fontWeight: 600, boxShadow: '0 8px 30px rgba(0,0,0,0.08)' },
+        success: { duration: 3000, style: { background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0' } },
+        error: { duration: 5000, style: { background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' } },
+      }} />
 
-      {/* Modern Header */}
-      <header className="px-6 py-4 flex justify-between items-center border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+      <UsageBanner onUpgrade={() => setViewingPricing(true)} />
+
+      {/* Header */}
+      <header className="px-5 py-3 flex justify-between items-center border-b border-slate-200/60 bg-white/70 backdrop-blur-xl sticky top-0 z-50">
         <div className="flex items-center gap-4">
-          <span className="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-            ResumeGenie
-          </span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-200/50">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            </div>
+            <span className="text-lg font-black gradient-text hidden sm:block">ResumeGenie</span>
+          </div>
+
+          <div className="h-6 w-px bg-slate-200/80" />
           <ModeToggle mode={mode} onModeChange={setMode} />
-          <div className="h-6 w-px bg-gray-200"></div>
-          <button
-            onClick={() => setViewingTemplates(true)}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
-          >
-            <span className="text-lg">🖼️</span> Templates
-          </button>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-xs font-semibold text-gray-600">
-              {user.displayName || user.email}
-            </span>
-          </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setViewingTemplates(true)}
+            className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+          >
+            Templates
+          </button>
+          <button
+            onClick={() => setViewingPricing(true)}
+            className="px-3 py-2 text-xs font-bold text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+          >
+            Pricing
+          </button>
+
+          <div className="h-6 w-px bg-slate-200/80 mx-1" />
+
+          {subscription.tier === 'free' && (
+            <button
+              onClick={() => setViewingPricing(true)}
+              className="px-3 py-1.5 text-[10px] font-black bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg hover:shadow-purple-200/50 transition-all hover:-translate-y-0.5 uppercase tracking-wide"
+            >
+              Upgrade
+            </button>
+          )}
 
           <button
             onClick={saveResumeData}
             disabled={saveStatus === 'Saving...'}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg shadow-lg transition-all hover:-translate-y-0.5 ${saveStatus === 'Saved successfully!'
-              ? 'bg-green-600 text-white shadow-green-200'
-              : 'bg-gray-900 text-white hover:bg-gray-800 shadow-gray-200'
-              }`}
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all duration-300 hover:-translate-y-0.5 ${
+              saveStatus === 'Saved successfully!'
+                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200/50'
+                : 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-200/50'
+            }`}
           >
             {saveStatus === 'Saving...' ? (
               <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                Saving...
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Saving
               </>
             ) : saveStatus === 'Saved successfully!' ? (
               <>
-                <span>✓</span> Saved!
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                Saved
               </>
             ) : (
               <>
-                <span>💾</span> Save Progress
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                Save
               </>
             )}
           </button>
 
-          <button
-            onClick={handleSignOut}
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-          >
-            Log Out
-          </button>
+          <div className="relative group">
+            <button className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 transition-all">
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="" className="w-7 h-7 rounded-lg object-cover ring-2 ring-slate-100" />
+              ) : (
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-black">
+                  {(user.displayName || user.email || '?')[0].toUpperCase()}
+                </div>
+              )}
+              <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wide ${
+                subscription.tier === 'enterprise' ? 'bg-amber-100 text-amber-700' :
+                subscription.tier === 'pro' ? 'bg-purple-100 text-purple-700' :
+                'bg-slate-100 text-slate-500'
+              }`}>
+                {subscription.tier}
+              </span>
+            </button>
+
+            <div className="absolute right-0 top-full mt-1 w-48 py-1 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className="px-3 py-2 border-b border-slate-100">
+                <p className="text-xs font-bold text-slate-900 truncate">{user.displayName || 'User'}</p>
+                <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="w-full text-left px-3 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors"
+              >
+                Log out
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Main Content Area - Card Style */}
-      <main className="flex-1 flex overflow-hidden p-6 gap-6 max-w-[1920px] mx-auto w-full">
+      {/* Main Content */}
+      <main className="flex-1 flex overflow-hidden p-4 gap-4 max-w-[1920px] mx-auto w-full">
         {mode === 'resume-analyzer' ? (
-          <div className="w-full h-full rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden bg-white">
+          <div className="w-full h-full rounded-2xl shadow-xl shadow-slate-200/30 border border-slate-200/60 overflow-hidden bg-white">
             <ResumeAnalyzer />
+          </div>
+        ) : mode === 'career-insights' ? (
+          <div className="w-full h-full rounded-2xl shadow-xl shadow-slate-200/30 border border-slate-200/60 overflow-hidden bg-white">
+            <CareerInsights resumeData={resumeData} />
           </div>
         ) : (
           <>
-            {/* Left Panel: Form, Editor or AI */}
-            <div className={`w-1/2 flex flex-col rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-purple-100/50 ring-1 ring-black/5 ${mode === 'editor' ? 'bg-[#1e1e1e]' : 'bg-white'
-              }`}>
+            {/* Left Panel */}
+            <div className={`w-1/2 flex flex-col rounded-2xl shadow-xl shadow-slate-200/30 border border-slate-200/60 overflow-hidden transition-all duration-500 ${
+              mode === 'editor' ? 'bg-[#1a1b26]' : 'bg-white'
+            }`}>
               {mode === 'form' ? (
                 <FormBuilder
                   resumeData={resumeData}
@@ -430,36 +492,42 @@ export default function App() {
                 />
               ) : (
                 <div className="h-full flex flex-col relative">
-                  <div className="absolute top-4 right-4 z-10">
+                  <div className="absolute top-3 right-3 z-10">
                     <button
                       onClick={() => handleCompile()}
                       disabled={loading}
-                      className="px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all flex items-center gap-2"
+                      className="px-5 py-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white text-xs font-bold rounded-xl hover:shadow-lg hover:shadow-purple-300/40 transition-all flex items-center gap-2 hover:-translate-y-0.5"
                     >
                       {loading ? (
                         <>
-                          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                          <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                           Compiling...
                         </>
                       ) : (
-                        '⚡ Compile PDF'
+                        <>
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                          Compile PDF
+                        </>
                       )}
                     </button>
                   </div>
                   <div className="flex-1">
                     <Editor
-                      key={latex.substring(0, 50) + mode} // Force refresh on content OR mode change
+                      key={latex.substring(0, 50) + mode}
                       value={latex}
                       onChange={setLatex}
                       height="100%"
                       theme="vs-dark"
                       options={{
                         minimap: { enabled: false },
-                        fontSize: 14,
-                        lineHeight: 1.6,
-                        fontFamily: "'Fira Code', 'Monaco', monospace",
-                        padding: { top: 24, bottom: 24 },
-                        smoothScrolling: true
+                        fontSize: 13,
+                        lineHeight: 1.7,
+                        fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                        padding: { top: 20, bottom: 20 },
+                        smoothScrolling: true,
+                        cursorBlinking: 'smooth',
+                        cursorSmoothCaretAnimation: 'on',
+                        renderLineHighlight: 'gutter',
                       }}
                     />
                   </div>
@@ -468,14 +536,10 @@ export default function App() {
             </div>
 
             {/* Right Panel: PDF Preview */}
-            <div className="w-1/2 flex flex-col bg-gray-800/5 backdrop-blur-sm rounded-2xl border border-gray-200/50 overflow-hidden relative group">
-              <div className="absolute inset-0 bg-white/40 backdrop-blur-sm -z-10"></div>
-
-              {/* Preview Header/Controls could go here */}
-
-              <div className="flex-1 p-8 flex justify-center items-start overflow-y-auto custom-scrollbar">
-                <div className="shadow-2xl shadow-gray-400/20 rounded-sm transition-transform duration-300 w-full h-full bg-white">
-                  <Preview pdfUrl={pdfUrl} />
+            <div className="w-1/2 flex flex-col rounded-2xl border border-slate-200/60 overflow-hidden bg-slate-100/50 relative">
+              <div className="flex-1 p-6 flex justify-center items-start overflow-y-auto custom-scrollbar">
+                <div className="shadow-2xl shadow-slate-400/10 rounded-lg transition-transform duration-300 w-full h-full bg-white ring-1 ring-slate-200/50">
+                  <Preview pdfUrl={pdfUrl} loading={loading} />
                 </div>
               </div>
             </div>

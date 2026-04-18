@@ -157,15 +157,18 @@ export default function ResumeAnalyzer() {
     const readyToAnalyze = Boolean(extractedText.trim()) && !isUploading && !isExtracting;
 
     return (
-        <div className="w-full h-full flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-900">
+        <div className="w-full h-full flex flex-col overflow-hidden bg-white">
             {/* Hero */}
-            <div className="w-full bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-900 py-6 px-4 text-center border-b border-gray-200">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-gray-100 flex items-center justify-center gap-2">
-                    <FileText className="text-purple-600" /> Resume PDF Analyzer
-                </h2>
-                <p className="text-sm text-slate-600 dark:text-gray-300 mt-2">
-                    Upload your PDF, paste a job description, and get instant AI-powered analysis.
-                </p>
+            <div className="w-full bg-gradient-to-r from-purple-50/80 via-white to-pink-50/80 py-5 px-6 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-200/50">
+                        <FileText className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                        <h2 className="text-base font-black text-slate-900">Resume Analyzer</h2>
+                        <p className="text-[11px] text-slate-400">Upload PDF &middot; Paste JD &middot; Get AI-powered insights</p>
+                    </div>
+                </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 flex flex-col lg:flex-row gap-6">
@@ -249,7 +252,7 @@ export default function ResumeAnalyzer() {
                     <button
                         onClick={handleAnalyze}
                         disabled={!readyToAnalyze || aiLoading}
-                        className="w-full py-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-violet-600 hover:shadow-xl hover:shadow-purple-200/50 text-white text-sm font-bold rounded-xl disabled:opacity-50 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5"
                     >
                         {aiLoading ? (
                             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -291,16 +294,21 @@ export default function ResumeAnalyzer() {
                             </CardHeader>
 
                             {/* Tabs Navigation */}
-                            <div className="flex gap-2 p-4 bg-slate-50 border-b border-gray-100 overflow-x-auto">
+                            <div className="flex gap-1 p-2 bg-slate-50/50 border-b border-slate-100 overflow-x-auto">
                                 {['summary', 'scores', 'issues', 'bullets'].map(tab => (
                                     <button
                                         key={tab}
                                         onClick={() => setActiveTab(tab)}
-                                        className={`px-3 py-1.5 text-xs font-bold rounded-md capitalize transition-colors ${activeTab === tab ? 'bg-purple-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                                            }`}
+                                        className={`px-3 py-1.5 text-xs font-bold rounded-lg capitalize transition-all duration-200 ${
+                                            activeTab === tab
+                                                ? 'bg-white text-purple-700 shadow-sm ring-1 ring-black/[0.04]'
+                                                : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
+                                        }`}
                                     >
                                         {tab}
-                                        {tab === 'issues' && aiResult.issues?.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[10px]">{aiResult.issues.length}</span>}
+                                        {tab === 'issues' && aiResult.issues?.length > 0 && (
+                                            <span className="ml-1 px-1.5 py-0.5 rounded-md bg-red-500 text-white text-[9px] font-black">{aiResult.issues.length}</span>
+                                        )}
                                     </button>
                                 ))}
                             </div>

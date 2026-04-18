@@ -1,61 +1,77 @@
-const { execSync } = require('child_process');
+const { execFile } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-// Use our custom Docker image with fonts and class files
 const DOCKER_IMAGE = process.env.DOCKER_IMAGE || 'latex-editor-custom';
+const COMPILE_TIMEOUT_MS = 30000;
 
 module.exports = async function runXeLaTeX(texFilePath, outputDir) {
     const texFileName = path.basename(texFilePath);
     const workDir = path.dirname(texFilePath);
-    const outDir = outputDir;
-    const pdfFile = path.join(outDir, texFileName.replace(/\.tex$/, '.pdf'));
-    const logFile = path.join(outDir, texFileName.replace(/\.tex$/, '.log'));
+    const pdfFile = path.join(outputDir, texFileName.replace(/\.tex$/, '.pdf'));
 
-    try {
-        // Run XeLaTeX in Docker with better error handling
-        // Use -halt-on-error to stop on first error
-        // Use -file-line-error to get file and line information for errors
-        // Mount the templates directory to make class file available
-        const templatesDir = path.join(__dirname, '..', 'templates');
-        const fontsDir = path.join(templatesDir, 'fonts');
-        const command = `docker run --rm \
-            -v "${workDir.replace(/\\/g, '/')}":/data \
-            -v "${templatesDir.replace(/\\/g, '/')}":/templates \
-            -v "${fontsDir.replace(/\\/g, '/')}":/data/fonts \
-            -e TEXINPUTS=".:/templates:" \
-            -w /data ${DOCKER_IMAGE} \
-            xelatex -interaction=nonstopmode -halt-on-error -file-line-error \
-            -output-directory=out ${texFileName}`;
+    const templatesDir = path.join(__dirname, '..', 'templates');
+    const fontsDir = path.join(templatesDir, 'fonts');
 
-        try {
-            execSync(command, { stdio: ['ignore', 'pipe', 'pipe'] });
-        } catch (execError) {
-            // If compilation fails, capture the error output
-            console.error('LaTeX compilation error:', execError.message);
+    const args = [
+        'run', '--rm',
+        // Resource limits
+        '--memory=512m',
+        '--cpus=1',
+        // Security: no network access (prevents data exfiltration from \write18)
+        '--network=none',
+        // Security: read-only root filesystem (writable dirs mounted explicitly)
+        '--read-only',
+        // Security: drop all capabilities
+        '--cap-drop=ALL',
+        // Security: no new privileges
+        '--security-opt=no-new-privileges',
+        // Volume mounts
+        '-v', `${workDir.replace(/\\/g, '/')}:/data`,
+        '-v', `${templatesDir.replace(/\\/g, '/')}:/templates:ro`,
+        '-v', `${fontsDir.replace(/\\/g, '/')}:/data/fonts:ro`,
+        // Tmpfs for writable temp dirs XeLaTeX needs
+        '--tmpfs', '/tmp:size=64m',
+        // Environment
+        '-e', 'TEXINPUTS=.:/templates:',
+        '-w', '/data',
+        DOCKER_IMAGE,
+        'xelatex',
+        '-no-shell-escape',
+        '-interaction=nonstopmode',
+        '-halt-on-error',
+        '-file-line-error',
+        '-output-directory=out',
+        texFileName
+    ];
 
-            // Check if log file was generated despite the error
-            if (fs.existsSync(logFile)) {
-                // Log file exists, we'll let the calling function handle it
-                return null;
-            } else {
-                // No log file, throw with Docker error message
-                throw new Error(`LaTeX compilation failed: ${execError.message}`);
+    return new Promise((resolve, reject) => {
+        const child = execFile('docker', args, {
+            timeout: COMPILE_TIMEOUT_MS,
+            maxBuffer: 2 * 1024 * 1024,
+        }, (error, stdout, stderr) => {
+            if (error) {
+                if (error.killed) {
+                    return reject(new Error('LaTeX compilation timed out (30s limit)'));
+                }
+
+                const logFile = path.join(outputDir, texFileName.replace(/\.tex$/, '.log'));
+                if (fs.existsSync(logFile)) {
+                    const logContent = fs.readFileSync(logFile, 'utf8');
+                    const errorLines = logContent.split('\n')
+                        .filter(line => line.includes('Error') || line.startsWith('!') || line.includes('Fatal'))
+                        .slice(0, 5)
+                        .join('\n');
+                    return reject(new Error(errorLines || 'LaTeX compilation failed'));
+                }
+                return reject(new Error('LaTeX compilation failed: ' + error.message));
             }
-        }
 
-        // Check if PDF was generated
-        if (fs.existsSync(pdfFile)) {
-            return pdfFile;
-        }
+            if (fs.existsSync(pdfFile)) {
+                return resolve(pdfFile);
+            }
 
-        // PDF not found but no error was thrown - check log file
-        if (fs.existsSync(logFile)) {
-            return null; // Return null to indicate failure but log file exists
-        }
-
-        throw new Error('PDF not generated and no log file found');
-    } catch (err) {
-        throw new Error('LaTeX compilation failed: ' + err.message);
-    }
+            reject(new Error('PDF not generated — check LaTeX source for errors'));
+        });
+    });
 };

@@ -7,7 +7,6 @@ const { PDFParse } = require('pdf-parse');
 
 const UPLOADS_DIR = path.join(__dirname, '../uploads');
 
-// Ensure uploads directory exists (just in case)
 if (!fs.existsSync(UPLOADS_DIR)) {
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
@@ -17,13 +16,14 @@ const storage = multer.diskStorage({
         cb(null, UPLOADS_DIR);
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
+        const sanitized = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+        cb(null, Date.now() + '-' + sanitized);
     },
 });
 
 const upload = multer({
     storage,
-    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+    limits: { fileSize: 2 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         if (file.mimetype === 'application/pdf') cb(null, true);
         else cb(new Error('Only PDF files are allowed'));
@@ -42,8 +42,18 @@ router.post('/', upload.single('resume'), (req, res) => {
 router.get('/extract', async (req, res) => {
     const { filename } = req.query;
     if (!filename) return res.status(400).json({ error: 'Filename required' });
-    const filePath = path.join(UPLOADS_DIR, filename);
+
+    // Prevent path traversal: strip directory separators and resolve within UPLOADS_DIR
+    const sanitizedFilename = path.basename(filename);
+    const filePath = path.join(UPLOADS_DIR, sanitizedFilename);
+
+    // Verify the resolved path is still inside UPLOADS_DIR
+    if (!filePath.startsWith(UPLOADS_DIR)) {
+        return res.status(400).json({ error: 'Invalid filename' });
+    }
+
     if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });
+
     try {
         const dataBuffer = fs.readFileSync(filePath);
         const parser = new PDFParse({ data: dataBuffer });

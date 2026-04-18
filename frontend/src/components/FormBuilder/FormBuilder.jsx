@@ -47,48 +47,59 @@ export default function FormBuilder({ resumeData, onDataChange, onGenerateResume
     const CurrentFormComponent = STEPS[currentStep - 1].component;
     const currentStepKey = STEPS[currentStep - 1].key;
 
+    const progress = (currentStep / STEPS.length) * 100;
+
     return (
         <div className="h-full flex flex-col bg-white">
-            {/* Progress Stepper */}
-            <div className="px-6 py-4 border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-                <div className="flex items-center justify-between">
-                    {STEPS.map((step, index) => (
-                        <React.Fragment key={step.id}>
-                            <div className="flex flex-col items-center group cursor-pointer transition-all" onClick={() => setCurrentStep(step.id)}>
-                                <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${currentStep === step.id
-                                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30 ring-4 ring-purple-50 scale-110'
-                                        : currentStep > step.id
-                                            ? 'bg-purple-100 text-purple-600'
-                                            : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'
-                                        }`}
-                                >
-                                    {currentStep > step.id ? '✓' : step.id}
-                                </div>
-                                <span className={`text-[10px] mt-2 font-medium transition-colors ${currentStep === step.id
-                                    ? 'text-purple-600'
-                                    : 'text-gray-400 group-hover:text-gray-500'
-                                    }`}>
-                                    {step.name}
-                                </span>
-                            </div>
-                            {index < STEPS.length - 1 && (
-                                <div className={`flex-1 h-0.5 mx-2 rounded-full transition-all duration-500 ${currentStep > step.id
-                                    ? 'bg-purple-200'
-                                    : 'bg-gray-100'
-                                    }`} />
-                            )}
-                        </React.Fragment>
+            {/* Progress Bar + Stepper */}
+            <div className="border-b border-slate-100 bg-white sticky top-0 z-10">
+                {/* Thin progress bar */}
+                <div className="h-1 bg-slate-100">
+                    <div
+                        className="h-full bg-gradient-to-r from-purple-600 to-pink-500 transition-all duration-500 ease-out rounded-r-full"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+
+                {/* Step pills */}
+                <div className="px-4 py-3 flex items-center gap-1 overflow-x-auto custom-scrollbar">
+                    {STEPS.map((step) => (
+                        <button
+                            key={step.id}
+                            onClick={() => setCurrentStep(step.id)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all duration-200 ${
+                                currentStep === step.id
+                                    ? 'bg-purple-100 text-purple-700 ring-1 ring-purple-200'
+                                    : currentStep > step.id
+                                        ? 'bg-emerald-50 text-emerald-600'
+                                        : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
+                            }`}
+                        >
+                            <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${
+                                currentStep === step.id
+                                    ? 'bg-purple-600 text-white'
+                                    : currentStep > step.id
+                                        ? 'bg-emerald-500 text-white'
+                                        : 'bg-slate-200 text-slate-400'
+                            }`}>
+                                {currentStep > step.id ? (
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                                ) : step.id}
+                            </span>
+                            {step.name}
+                        </button>
                     ))}
                 </div>
             </div>
 
             {/* Form Content */}
             <div className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
-                <div className="max-w-3xl mx-auto animate-fade-in-up">
+                <div className="max-w-3xl mx-auto animate-fade-in-up" key={currentStep}>
                     <div className="mb-8">
-                        <span className="text-xs font-bold tracking-wider text-purple-600 uppercase mb-2 block">Step {currentStep} of {STEPS.length}</span>
-                        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                        <span className="text-[10px] font-black tracking-widest text-purple-500 uppercase mb-2 block">
+                            Step {currentStep} of {STEPS.length}
+                        </span>
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                             {STEPS[currentStep - 1].name}
                         </h2>
                     </div>
@@ -100,32 +111,35 @@ export default function FormBuilder({ resumeData, onDataChange, onGenerateResume
                 </div>
             </div>
 
-            {/* Navigation Buttons */}
-            <div className="px-8 py-5 border-t border-gray-100 flex justify-between items-center bg-white sticky bottom-0 z-10">
+            {/* Navigation */}
+            <div className="px-6 py-4 border-t border-slate-100 flex justify-between items-center bg-white/80 backdrop-blur-sm sticky bottom-0 z-10">
                 <button
                     onClick={handlePrevious}
                     disabled={currentStep === 1}
-                    className="px-6 py-2.5 rounded-lg font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-20 disabled:cursor-not-allowed text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                 >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
                     Back
                 </button>
 
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                     {currentStep === STEPS.length && (
                         <button
                             onClick={onGenerateResume}
-                            className="px-8 py-2.5 rounded-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/25 transition-all transform hover:-translate-y-0.5"
+                            className="flex items-center gap-2 px-7 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-xl hover:shadow-purple-300/30 transition-all hover:-translate-y-0.5"
                         >
-                            ✨ Generate Resume
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                            Generate Resume
                         </button>
                     )}
 
                     {currentStep < STEPS.length && (
                         <button
                             onClick={handleNext}
-                            className="px-8 py-2.5 rounded-lg font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-all shadow-lg shadow-gray-200 hover:-translate-y-0.5"
+                            className="flex items-center gap-1.5 px-7 py-2.5 rounded-xl text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-200/50 hover:-translate-y-0.5"
                         >
-                            Next Step &rarr;
+                            Next
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                         </button>
                     )}
                 </div>
