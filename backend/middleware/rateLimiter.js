@@ -4,6 +4,18 @@ function keyGenerator(req) {
     return req.user?.uid || req.ip;
 }
 
+function rateLimitHeaders(req, res, next) {
+    const originalJson = res.json.bind(res);
+    res.json = function (body) {
+        if (res.statusCode === 429) {
+            const retryAfter = res.getHeader('Retry-After') || 60;
+            res.setHeader('Retry-After', retryAfter);
+        }
+        return originalJson(body);
+    };
+    next();
+}
+
 // Global rate limit: 100 requests per 15 minutes
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -89,4 +101,5 @@ module.exports = {
     aiLimiter,
     uploadLimiter,
     templateLimiter,
+    rateLimitHeaders,
 };

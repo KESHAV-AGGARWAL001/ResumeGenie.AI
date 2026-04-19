@@ -1,6 +1,10 @@
 const { admin } = require('../config/firebaseAdmin');
+const { TieredCache } = require('../lib/cache');
 
 const db = admin.firestore();
+
+const subCache = new TieredCache({ maxSize: 200, defaultTTL: 5 * 60 * 1000 });
+const usageCache = new TieredCache({ maxSize: 200, defaultTTL: 30 * 1000 });
 
 const TIERS = {
     free: {
@@ -30,24 +34,34 @@ const TIERS = {
 };
 
 async function getUserSubscription(uid) {
+    const cached = subCache.get(`sub:${uid}`);
+    if (cached) return cached;
+
     const docRef = db.collection('users').doc(uid);
     const doc = await docRef.get();
 
     if (!doc.exists) {
-        return { tier: 'free', status: 'active' };
+        const result = { tier: 'free', status: 'active' };
+        subCache.set(`sub:${uid}`, result);
+        return result;
     }
 
     const data = doc.data();
     const sub = data.subscription || {};
 
+    let result;
     if (sub.tier && sub.tier !== 'free' && sub.status === 'active') {
         if (sub.currentPeriodEnd && new Date(sub.currentPeriodEnd) < new Date()) {
-            return { tier: 'free', status: 'expired' };
+            result = { tier: 'free', status: 'expired' };
+        } else {
+            result = sub;
         }
-        return sub;
+    } else {
+        result = { tier: 'free', status: 'active' };
     }
 
-    return { tier: 'free', status: 'active' };
+    subCache.set(`sub:${uid}`, result);
+    return result;
 }
 
 async function updateSubscription(uid, subscriptionData) {
@@ -56,14 +70,20 @@ async function updateSubscription(uid, subscriptionData) {
         subscription: subscriptionData,
         updatedAt: new Date().toISOString(),
     }, { merge: true });
+    subCache.delete(`sub:${uid}`);
 }
 
 async function getUsage(uid) {
+    const cached = usageCache.get(`usage:${uid}`);
+    if (cached) return cached;
+
     const docRef = db.collection('users').doc(uid);
     const doc = await docRef.get();
 
     if (!doc.exists) {
-        return { compilationsToday: 0, aiAnalysesToday: 0, lastResetDate: today() };
+        const result = { compilationsToday: 0, aiAnalysesToday: 0, lastResetDate: today() };
+        usageCache.set(`usage:${uid}`, result);
+        return result;
     }
 
     const data = doc.data();
@@ -72,9 +92,11 @@ async function getUsage(uid) {
     if (usage.lastResetDate !== today()) {
         const resetUsage = { compilationsToday: 0, aiAnalysesToday: 0, lastResetDate: today() };
         await docRef.set({ usage: resetUsage }, { merge: true });
+        usageCache.set(`usage:${uid}`, resetUsage);
         return resetUsage;
     }
 
+    usageCache.set(`usage:${uid}`, usage);
     return usage;
 }
 
@@ -84,6 +106,7 @@ async function incrementUsage(uid, field) {
 
     usage[field] = (usage[field] || 0) + 1;
     await docRef.set({ usage }, { merge: true });
+    usageCache.delete(`usage:${uid}`);
 
     return usage;
 }
@@ -125,6 +148,10 @@ function today() {
     return new Date().toISOString().split('T')[0];
 }
 
+function getCacheStats() {
+    return { subscription: subCache.stats(), usage: usageCache.stats() };
+}
+
 module.exports = {
     TIERS,
     getUserSubscription,
@@ -133,4 +160,5 @@ module.exports = {
     incrementUsage,
     checkUsageLimit,
     getTierConfig,
+    getCacheStats,
 };

@@ -1,0 +1,87 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    needs: []
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      # Run tests before deploying
+      - name: Install & test backend
+        working-directory: backend
+        run: |
+          npm ci
+          npm test
+        env:
+          GOOGLE_GENAI_API_KEY: test-key
+          FIREBASE_PROJECT_ID: test-project
+
+      # Build frontend
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npx vite build
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_STRIPE_PRO_PRICE_ID: ${{ secrets.VITE_STRIPE_PRO_PRICE_ID }}
+          VITE_STRIPE_ENTERPRISE_PRICE_ID: ${{ secrets.VITE_STRIPE_ENTERPRISE_PRICE_ID }}
+
+      # ─── Deploy options (uncomment the one matching your platform) ───
+
+      # Option A: Railway
+      # - name: Deploy to Railway
+      #   uses: bervProject/railway-deploy@main
+      #   with:
+      #     railway_token: ${{ secrets.RAILWAY_TOKEN }}
+      #     service: resumegenie-api
+
+      # Option B: Render
+      # - name: Deploy to Render
+      #   run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      # Option C: Fly.io
+      # - uses: superfly/flyctl-actions/setup-flyctl@master
+      # - name: Deploy to Fly.io
+      #   run: flyctl deploy --remote-only
+      #   env:
+      #     FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      # Option D: Docker + SSH (self-hosted)
+      # - name: Deploy via SSH
+      #   uses: appleboy/ssh-action@v1
+      #   with:
+      #     host: ${{ secrets.DEPLOY_HOST }}
+      #     username: ${{ secrets.DEPLOY_USER }}
+      #     key: ${{ secrets.DEPLOY_SSH_KEY }}
+      #     script: |
+      #       cd /opt/resumegenie
+      #       git pull origin main
+      #       docker compose build --no-cache api
+      #       docker compose up -d api
+      #       docker compose exec api curl -f http://localhost:5000/health
+
+      - name: Deployment placeholder
+        run: echo "CD pipeline ready. Uncomment the deploy step for your platform."

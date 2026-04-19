@@ -1,4 +1,7 @@
 const { GoogleGenAI } = require("@google/genai");
+const { CircuitBreaker } = require('../lib/circuitBreaker');
+const { TieredCache } = require('../lib/cache');
+const { hashContent } = require('../lib/hashUtil');
 
 const GEMINI_API_KEY = process.env.GOOGLE_GENAI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 
@@ -9,6 +12,42 @@ if (GEMINI_API_KEY) {
     } catch (err) {
         console.error("[Career Service] Failed to initialize GoogleGenAI SDK:", err.message);
     }
+}
+
+const careerCircuit = new CircuitBreaker('career-service', { failureThreshold: 5, resetTimeout: 60000 });
+const careerCache = new TieredCache({ maxSize: 100, defaultTTL: 10 * 60 * 1000 });
+
+async function callGemini(prompt, cacheKeyData) {
+    const cacheKey = hashContent(cacheKeyData);
+    const cached = careerCache.get(cacheKey);
+    if (cached) return cached;
+
+    const result = await careerCircuit.exec(async () => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
+        try {
+            const response = await ai.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: prompt,
+            });
+            return response;
+        } finally {
+            clearTimeout(timeout);
+        }
+    });
+
+    const rawText = result.text || "";
+    if (!rawText) throw new Error("Empty response from Gemini");
+
+    const cleaned = rawText
+        .replace(/^```json\s*/gi, "")
+        .replace(/^```\s*/gi, "")
+        .replace(/```$/gi, "")
+        .trim();
+
+    const parsed = JSON.parse(cleaned);
+    careerCache.set(cacheKey, parsed);
+    return parsed;
 }
 
 async function detectCareerGaps(resumeData, targetRole) {
@@ -49,21 +88,7 @@ Analyze and return ONLY a JSON object with this exact shape:
 `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-        });
-
-        const rawText = response.text || "";
-        if (!rawText) throw new Error("Empty response from Gemini");
-
-        const cleaned = rawText
-            .replace(/^```json\s*/gi, "")
-            .replace(/^```\s*/gi, "")
-            .replace(/```$/gi, "")
-            .trim();
-
-        return JSON.parse(cleaned);
+        return await callGemini(prompt, { type: 'gap', resumeData, targetRole });
     } catch (error) {
         console.error("Career gap detection error:", error.message);
         throw new Error("Failed to analyze career gaps: " + error.message);
@@ -116,21 +141,7 @@ Return ONLY a JSON object with this exact shape:
 `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-        });
-
-        const rawText = response.text || "";
-        if (!rawText) throw new Error("Empty response from Gemini");
-
-        const cleaned = rawText
-            .replace(/^```json\s*/gi, "")
-            .replace(/^```\s*/gi, "")
-            .replace(/```$/gi, "")
-            .trim();
-
-        return JSON.parse(cleaned);
+        return await callGemini(prompt, { type: 'optimize', resumeData, jobDescription });
     } catch (error) {
         console.error("Resume optimization error:", error.message);
         throw new Error("Failed to optimize resume: " + error.message);
@@ -179,21 +190,7 @@ Return ONLY a JSON object with this exact shape:
 `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-        });
-
-        const rawText = response.text || "";
-        if (!rawText) throw new Error("Empty response from Gemini");
-
-        const cleaned = rawText
-            .replace(/^```json\s*/gi, "")
-            .replace(/^```\s*/gi, "")
-            .replace(/```$/gi, "")
-            .trim();
-
-        return JSON.parse(cleaned);
+        return await callGemini(prompt, { type: 'ats', resumeData, jobDescription });
     } catch (error) {
         console.error("ATS keyword scan error:", error.message);
         throw new Error("Failed to scan ATS keywords: " + error.message);
@@ -236,21 +233,7 @@ Return ONLY a JSON object with this exact shape:
 `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-        });
-
-        const rawText = response.text || "";
-        if (!rawText) throw new Error("Empty response from Gemini");
-
-        const cleaned = rawText
-            .replace(/^```json\s*/gi, "")
-            .replace(/^```\s*/gi, "")
-            .replace(/```$/gi, "")
-            .trim();
-
-        const result = JSON.parse(cleaned);
+        const result = await callGemini(prompt, { type: 'tailor', resumeData, jobDescription });
 
         if (!result.tailored_resume_data || typeof result.tailored_resume_data !== 'object') {
             throw new Error("AI returned invalid tailored resume data");
@@ -315,21 +298,7 @@ The LaTeX should follow this structure:
 `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-        });
-
-        const rawText = response.text || "";
-        if (!rawText) throw new Error("Empty response from Gemini");
-
-        const cleaned = rawText
-            .replace(/^```json\s*/gi, "")
-            .replace(/^```\s*/gi, "")
-            .replace(/```$/gi, "")
-            .trim();
-
-        return JSON.parse(cleaned);
+        return await callGemini(prompt, { type: 'cover', resumeData, jobDescription, companyName });
     } catch (error) {
         console.error("Cover letter generation error:", error.message);
         throw new Error("Failed to generate cover letter: " + error.message);
@@ -375,25 +344,15 @@ Return ONLY a JSON object with this exact shape:
 `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-        });
-
-        const rawText = response.text || "";
-        if (!rawText) throw new Error("Empty response from Gemini");
-
-        const cleaned = rawText
-            .replace(/^```json\s*/gi, "")
-            .replace(/^```\s*/gi, "")
-            .replace(/```$/gi, "")
-            .trim();
-
-        return JSON.parse(cleaned);
+        return await callGemini(prompt, { type: 'email', resumeData, targetCompany, targetRole, recruiterName, tone });
     } catch (error) {
         console.error("Networking email draft error:", error.message);
         throw new Error("Failed to draft networking email: " + error.message);
     }
+}
+
+function getCareerServiceStats() {
+    return { circuit: careerCircuit.stats(), cache: careerCache.stats() };
 }
 
 module.exports = {
@@ -403,4 +362,5 @@ module.exports = {
     tailorResume,
     generateCoverLetter,
     draftNetworkingEmail,
+    getCareerServiceStats,
 };

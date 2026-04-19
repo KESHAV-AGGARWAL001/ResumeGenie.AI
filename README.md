@@ -80,24 +80,44 @@ The compiled PDF is shown in a **real-time preview panel** with download support
 
 ### 4. AI Resume Analysis
 
-There are two AI analysis entry points:
+Two analysis entry points:
 
-- **Resume PDF Analyzer** — Upload an existing resume PDF, extract text, then analyze.  
-- **In-app AI Consultant (WIP)** — Analyze the user’s structured resume data against a job description.
+- **Resume PDF Analyzer** — Upload a PDF, extract text via `pdf-parse`, then analyze.
+- **In-app AI Consultant** — Analyze structured resume data against a job description.
 
-The backend uses:
+The backend uses **Gemini 2.5 Flash** (via `@google/genai` SDK) with:
 
-- `pdf-parse` to extract plain text from uploaded PDFs.  
-- An OpenAI-powered service (GPT-4o-mini) to evaluate resumes and (optionally) match them to job descriptions.
+- **Deterministic scoring** (rule-based, reproducible) for numeric scores
+- **AI-powered qualitative analysis** for suggestions, rewrites, and strategy
 
-AI analysis can provide:
+AI analysis provides:
 
-- Overall resume score  
-- Score breakdown (structure, bullet quality, quantification, skill relevance, chronology consistency)  
-- Structural issues and suggested fixes  
-- Bullet-level rewrites  
-- Missing or weak keywords  
-- Job-description similarity score (when a JD is provided)  
+- Overall resume score (deterministic: technical depth, engineering impact, technology relevance, project complexity, role alignment)
+- Structural issues and suggested fixes
+- Bullet-level rewrites with stronger action verbs and quantification
+- Missing or weak keywords
+- Job-description similarity score (when a JD is provided)
+
+### 5. Career Insights (6 AI Features)
+
+| Feature | Endpoint | Description |
+|---|---|---|
+| **Career Gap Detection** | `POST /career/gaps` | Identifies missing skills/experience for a target role with action plans |
+| **JD Optimization** | `POST /career/optimize` | Suggests specific resume modifications to maximize JD alignment |
+| **ATS Keyword Scan** | `POST /career/ats-scan` | Analyzes keyword matches/gaps by category (technical, soft skills, tools) |
+| **Resume Tailoring** | `POST /career/tailor` | Rewrites resume content to maximize JD fit while preserving structure |
+| **Cover Letter Generation** | `POST /career/cover-letter` | Generates plain text + compilable LaTeX cover letters |
+| **Networking Email Draft** | `POST /career/networking-email` | Drafts cold outreach emails with formal/conversational/brief tone options |
+
+### 6. Subscription & Payments
+
+Three-tier system powered by **Stripe Checkout + Webhooks**:
+
+| Tier | Compilations | AI Analyses | Templates | Price |
+|---|---|---|---|---|
+| **Starter** | 3/day | 1/day | 2 | Free |
+| **Pro** | Unlimited | 10/day | 5 | $9.99/mo |
+| **Enterprise** | Unlimited | Unlimited | 5 + custom | $29.99/mo |
 
 For a deeper product vision, see [`docs/PRODUCT-VISION.md`](docs/PRODUCT-VISION.md).
 
@@ -128,32 +148,47 @@ Responsibilities:
 
 Built with:
 
-- **Node.js**  
-- **Express 5**  
-- **Joi** for validating `resumeData`  
-- **multer** for PDF uploads  
-- **pdf-parse** for PDF text extraction  
+- **Node.js 20** + **Express 5**
+- **Joi** for validating `resumeData`
+- **multer** for PDF uploads, **pdf-parse** for text extraction
+- **Firebase Admin SDK** for auth (JWT verification) + Firestore
+- **Stripe** for subscription payments + webhooks
+- **helmet** + **hpp** for security headers
+- **express-rate-limit** for tiered rate limiting
+
+Production infrastructure (zero external dependencies):
+
+- **LRU Cache** with TTL (`lib/cache.js`)
+- **Circuit Breaker** for Gemini API resilience (`lib/circuitBreaker.js`)
+- **Job Queue** with concurrency control (`lib/jobQueue.js`)
+- **Structured JSON Logging** with request IDs (`lib/logger.js`)
+- **Webhook Idempotency** via TTL cache (`routes/payments.js`)
 
 Responsibilities:
 
-- Validating and transforming structured resume data  
-- LaTeX template rendering across multiple templates  
-- Orchestrating XeLaTeX compilation via Docker  
-- Exposing AI analysis endpoints for resume scoring and JD matching  
-- Handling PDF upload and text extraction  
+- Validating and transforming structured resume data
+- LaTeX template rendering across 5 templates
+- Orchestrating XeLaTeX compilation via Docker (max 3 concurrent)
+- 6 AI career analysis endpoints with caching and circuit breaking
+- Subscription management and usage tracking with Firestore caching
+- PDF upload and text extraction  
 
 ### AI Layer
 
 Current model:
 
-- **GPT-4o-mini** (via OpenAI SDK)
+- **Gemini 2.5 Flash** (via `@google/genai` SDK)
 
 Responsibilities:
 
-- Resume scoring and issue detection  
+- Resume scoring (deterministic rule-based) and qualitative analysis (AI)
 - Bullet rewriting and stylistic improvements  
 - Keyword and skills gap analysis  
-- Job description alignment (similarity scoring)  
+- Job description alignment (similarity scoring)
+- Career gap detection and action plans
+- JD-optimized resume tailoring
+- Cover letter generation (plain text + LaTeX)
+- Networking email drafting  
 
 ### LaTeX Rendering System
 
@@ -196,7 +231,11 @@ User Form Input
 ```text
 PDF Upload
 → Text Extraction (pdf-parse)
-→ AI Analysis (GPT-4o-mini)
+→ Cache Check (SHA-256 hash of text + JD)
+→ Circuit Breaker Check
+→ Deterministic Scoring (rule-based)
+→ AI Analysis (Gemini 2.5 Flash, 30s timeout)
+→ Cache Result (10 min TTL)
 → Resume Score + Suggestions + Bullet Rewrites
 ```
 
@@ -223,15 +262,196 @@ ResumeGenie.AI is built on three principles:
 
 ## Long-Term Direction
 
-ResumeGenie.AI is evolving toward a **full AI Career Assistant**. Planned capabilities include:
+ResumeGenie.AI is evolving toward a **full AI Career Assistant**.
 
-- **Career Gap Detection** — Identify missing experiences or skills for target roles (e.g., “Add distributed systems exposure, API scalability, caching/messaging systems”).  
-- **Resume Personalization** — Automatically generate tailored resume variants for backend, frontend, full-stack, DevOps, etc.  
-- **Job Matching** — Recommend jobs based on skills, experience, and preferences; score how well a resume fits each role.  
-- **Application Tracking** — Track applications, interview pipelines, and outcomes inside the platform.  
-- **Recruiter Integration (future)** — Allow companies to post roles and search candidate profiles, with AI ranking and matching.  
+Already implemented:
+- Career Gap Detection
+- Resume Tailoring & JD Optimization
+- ATS Keyword Scanning
+- Cover Letter & Networking Email Generation
+- Subscription tiers with Stripe
+
+Planned:
+- **Job Matching** — Recommend jobs based on skills, experience, and preferences; score resume fit per role.
+- **Application Tracking** — Track applications, interview pipelines, and outcomes inside the platform.
+- **Recruiter Integration** — Allow companies to post roles and search candidate profiles with AI ranking.
+- **Redis-backed caching** — For horizontal scaling across multiple instances.
+- **Kubernetes deployment** — For auto-scaling and multi-region availability.
 
 See [`docs/PRODUCT-VISION.md`](docs/PRODUCT-VISION.md) for a deeper roadmap.
+
+---
+
+## Production Infrastructure
+
+### System Design (Zero External Dependencies)
+
+All scalability infrastructure is built using Node.js built-ins (`node:crypto`, `Map`, `setTimeout`) — no Redis, no RabbitMQ, no extra npm packages.
+
+| Component | File | Purpose |
+|---|---|---|
+| **LRU Cache** | `backend/lib/cache.js` | In-memory cache with TTL and LRU eviction. Used for subscription tier caching (5min), usage caching (30s), AI response caching (10min), PDF caching (1hr). |
+| **Circuit Breaker** | `backend/lib/circuitBreaker.js` | CLOSED → OPEN → HALF_OPEN state machine. Wraps all Gemini API calls — fails fast when the AI service is down instead of queuing timeouts. |
+| **Job Queue** | `backend/lib/jobQueue.js` | Async job queue with configurable concurrency (default 3). Prevents thread starvation from concurrent Docker LaTeX compilations. |
+| **Content Hashing** | `backend/lib/hashUtil.js` | SHA-256 hashing for cache keys. Identical LaTeX or AI inputs return cached results instantly. |
+| **Structured Logger** | `backend/lib/logger.js` | JSON-formatted logs with `timestamp`, `level`, `requestId`, `userId`, `method`, `path`, `duration`. |
+| **Request Logger** | `backend/middleware/requestLogger.js` | Logs every HTTP request/response with status code, duration, and user context. |
+| **Env Validator** | `backend/lib/envValidator.js` | Validates required environment variables on startup. Fails fast with clear error messages instead of crashing at runtime. |
+
+### Where Caching is Applied
+
+| Service | What's Cached | TTL | Cache Key |
+|---|---|---|---|
+| `subscriptionService.js` | User subscription tier | 5 min | `sub:{uid}` |
+| `subscriptionService.js` | Daily usage counts | 30 sec | `usage:{uid}` |
+| `aiService.js` | AI resume analysis results | 10 min | SHA-256(resumeText + JD) |
+| `careerService.js` | All 6 career AI responses | 10 min | SHA-256(inputs + type) |
+| `routes/compile.js` | Compiled PDF buffers | 1 hr | SHA-256(LaTeX source) |
+
+### Circuit Breaker Coverage
+
+| Service | Threshold | Reset Timeout |
+|---|---|---|
+| AI Service (resume analysis) | 5 failures | 60 seconds |
+| Career Service (all 6 endpoints) | 5 failures | 60 seconds |
+
+### Request Flow
+
+```text
+Client Request
+→ Request ID (UUID)
+→ Structured Logging
+→ Rate Limit Headers
+→ CORS (production-hardened)
+→ Request Timeout (60s / 120s for compile)
+→ Auth (Firebase JWT)
+→ Tier Attachment
+→ Rate Limiting (express-rate-limit)
+→ Usage Check
+→ Route Handler
+  → Cache Check (hit? return cached)
+  → Circuit Breaker (open? fail fast)
+  → Job Queue (compile only, max 3 concurrent)
+  → External Service (Gemini AI / Docker XeLaTeX)
+  → Cache Result
+→ Response Logging (status, duration)
+```
+
+### Webhook Idempotency
+
+Stripe webhook events are deduplicated using a TTL cache (1hr) keyed by `event.id`. Duplicate deliveries are acknowledged without reprocessing.
+
+---
+
+## DevOps
+
+### CI/CD Pipelines (GitHub Actions)
+
+| Workflow | Trigger | Steps |
+|---|---|---|
+| **CI** (`.github/workflows/ci.yml`) | Push / PR to `main` | Install → Syntax check → **Run tests** → Secret scan → Frontend build |
+| **CD** (`.github/workflows/cd.yml`) | Push to `main` | Test → Build → Deploy (Railway / Render / Fly.io / SSH — uncomment your platform) |
+
+### Automated Testing
+
+21 tests using Node.js built-in `node:test` (zero test dependencies):
+
+```bash
+cd backend && npm test
+```
+
+| Suite | Tests | Coverage |
+|---|---|---|
+| TieredCache | 8 | set/get, TTL expiry, LRU eviction, stats |
+| hashContent | 3 | consistency, uniqueness, object serialization |
+| CircuitBreaker | 4 | state transitions, failure threshold, recovery |
+| JobQueue | 4 | execution, concurrency limits, error propagation |
+| envValidator | 2 | required vars, missing vars → exit(1) |
+
+### Pre-commit Hooks
+
+Installed at `.git/hooks/pre-commit` (source: `scripts/pre-commit`):
+
+1. **Syntax check** — `node --check` on all staged `.js` files
+2. **Secret scan** — blocks commits containing Stripe live keys, AWS keys, private keys
+3. **`.env` guard** — prevents `.env` files from being committed
+
+Install manually: `cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit`
+
+### Docker
+
+**Multi-stage build** (`backend/Dockerfile.api`):
+
+- Stage 1: Install dependencies (cached layer)
+- Stage 2: Production image with non-root user, `tini` for signal handling, health check with start period
+
+**Docker Compose** (`docker-compose.yml`):
+
+```bash
+docker compose up -d
+```
+
+Starts: API server + Nginx reverse proxy + LaTeX compiler image build.
+
+**Docker Swarm** (`docker-stack.yml`) — for zero-downtime deploys:
+
+```bash
+docker stack deploy -c docker-stack.yml resumegenie
+```
+
+- 2 API replicas with rolling updates (`start-first` order)
+- Automatic rollback on health check failure
+- Resource limits: 1 CPU, 512MB per container
+
+### Nginx Reverse Proxy
+
+`nginx/nginx.conf` provides:
+
+- **Gzip compression** (6 content types, level 6)
+- **Rate limiting** (10 req/s general, 1 req/s compile)
+- **Security headers** (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy)
+- **Request ID forwarding** (`X-Request-ID` header → backend logging)
+- **Keepalive connections** to upstream
+- **Separate timeout** for compile endpoint (120s) vs general (60s)
+
+### Environment Separation
+
+| Environment | Config File | Key Differences |
+|---|---|---|
+| `development` | `backend/config/environments/development.js` | Short TTLs, debug logging, localhost CORS |
+| `staging` | `backend/config/environments/staging.js` | Inherits production + debug logs, shorter cache |
+| `production` | `backend/config/environments/production.js` | Strict TTLs, info-only logs, FRONTEND_URL-only CORS |
+
+Auto-loaded based on `NODE_ENV` via `backend/config/environments/index.js`.
+
+### Production Hardening
+
+| Feature | Implementation |
+|---|---|
+| **Env validation** | Fails fast on startup if `GOOGLE_GENAI_API_KEY` or `FIREBASE_PROJECT_ID` missing |
+| **Trust proxy** | Enabled in production for correct client IP behind Nginx/load balancer |
+| **Production CORS** | Localhost origins stripped when `NODE_ENV=production` |
+| **Request timeout** | 60s default, 120s for compile — kills hung requests |
+| **404 handler** | Returns JSON `{ error, path }` instead of Express default HTML |
+| **Graceful shutdown** | Drains connections on `SIGTERM`/`SIGINT`, 10s forced exit |
+| **Non-root Docker** | Runs as `app:app` user inside container |
+
+### Health Check Endpoint
+
+`GET /health` returns:
+
+```json
+{
+  "status": "ok",
+  "uptime": 12345.678,
+  "services": {
+    "subscription": { "hits": 42, "misses": 3, "hitRate": "93.3%" },
+    "ai": { "circuit": { "state": "CLOSED", "failures": 0 }, "cache": { "size": 5 } },
+    "career": { "circuit": { "state": "CLOSED" }, "cache": { "size": 12 } },
+    "compile": { "queue": { "running": 1, "queued": 0 }, "cache": { "size": 8 } }
+  }
+}
+```
 
 ---
 
@@ -239,52 +459,57 @@ See [`docs/PRODUCT-VISION.md`](docs/PRODUCT-VISION.md) for a deeper roadmap.
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
-- Docker
-- PowerShell (for Windows)
+- Node.js 20+
+- Docker (for LaTeX compilation)
+- Git
 
 ### Installation
 
-1. Clone this repository  
-2. Install dependencies:
+```bash
+# Clone
+git clone https://github.com/KESHAV-AGGARWAL001/ResumeGenie.AI.git
+cd ResumeGenie.AI
+
+# Install dependencies
+cd backend && npm install && cd ..
+cd frontend && npm install && cd ..
+
+# Configure environment
+cp backend/.env.example backend/.env   # Fill in your keys
+cp frontend/.env.example frontend/.env # Fill in your keys
+
+# Build LaTeX Docker image
+docker build -t latex-editor-custom .
+
+# Install pre-commit hooks
+cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+```
+
+### Running Locally
 
 ```bash
-# Install backend dependencies
-cd backend
-npm install
+# Terminal 1: Backend
+cd backend && npm run dev
 
-# Install frontend dependencies
-cd ../frontend
-npm install
+# Terminal 2: Frontend
+cd frontend && npm run dev
 ```
 
-3. Build the Docker image for LaTeX compilation:
+Open `http://localhost:5173`. Backend runs at `http://localhost:5000`.
 
-```powershell
-# From the project root directory
-.\build-docker-image.ps1
-```
-
----
-
-## Running the Application
-
-1. Start the backend server:
+### Running with Docker Compose (Production)
 
 ```bash
-cd backend
-npm start
+docker compose up -d
 ```
 
-2. Start the frontend development server:
+This starts the API server (port 5000) + Nginx reverse proxy (port 80) + builds the LaTeX image.
+
+### Running Tests
 
 ```bash
-cd frontend
-npm run dev
+cd backend && npm test
 ```
-
-3. Open your browser and navigate to the URL shown in the frontend console (typically `http://localhost:5173`).  
-   The backend runs at `http://localhost:5000` by default.
 
 ---
 

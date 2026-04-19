@@ -1,6 +1,8 @@
 const { GoogleGenAI } = require("@google/genai");
+const { CircuitBreaker } = require('../lib/circuitBreaker');
+const { TieredCache } = require('../lib/cache');
+const { hashContent } = require('../lib/hashUtil');
 
-// Prefer backend-specific key, fall back to the generic Gemini key if needed
 const GEMINI_API_KEY = process.env.GOOGLE_GENAI_API_KEY || process.env.VITE_GEMINI_API_KEY;
 
 let ai = null;
@@ -14,6 +16,9 @@ if (GEMINI_API_KEY) {
 } else {
     console.warn("[AI Service] Warning: GOOGLE_GENAI_API_KEY (or VITE_GEMINI_API_KEY) is missing from environment variables.");
 }
+
+const aiCircuit = new CircuitBreaker('ai-service', { failureThreshold: 5, resetTimeout: 60000 });
+const aiCache = new TieredCache({ maxSize: 100, defaultTTL: 10 * 60 * 1000 });
 
 async function evaluateResume(resumeText, jobDescription = "") {
     if (!ai) {
@@ -75,13 +80,27 @@ RETURN ONLY A JSON OBJECT WITH THIS SHAPE:
 }
 `;
 
+    const cacheKey = hashContent({ resumeText, jobDescription });
+    const cached = aiCache.get(cacheKey);
+    if (cached) return cached;
+
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: suggestionPrompt,
+        const result = await aiCircuit.exec(async () => {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 30000);
+
+            try {
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash",
+                    contents: suggestionPrompt,
+                });
+                return response;
+            } finally {
+                clearTimeout(timeout);
+            }
         });
 
-        const rawText = response.text || "";
+        const rawText = result.text || "";
         if (!rawText) throw new Error("Empty response from Gemini");
 
         const cleanedJson = rawText
@@ -97,7 +116,7 @@ RETURN ONLY A JSON OBJECT WITH THIS SHAPE:
             throw new Error("Failed to parse Gemini JSON suggestions");
         }
 
-        return {
+        const finalResult = {
             overall_score: scoring.overall_score,
             similarity_score: scoring.similarity_score,
             score_breakdown: scoring.score_breakdown,
@@ -108,6 +127,9 @@ RETURN ONLY A JSON OBJECT WITH THIS SHAPE:
             predicted_score_after_fixes: scoring.predicted_score_after_fixes,
             summary_comment: suggestions.summary_comment || "",
         };
+
+        aiCache.set(cacheKey, finalResult);
+        return finalResult;
     } catch (error) {
         console.error("Error calling Gemini API:", error);
         throw new Error("Failed to evaluate resume with AI (Gemini): " + error.message);
@@ -220,6 +242,11 @@ function computeDeterministicScores(resumeText, jobDescription) {
     };
 }
 
+function getAiServiceStats() {
+    return { circuit: aiCircuit.stats(), cache: aiCache.stats() };
+}
+
 module.exports = {
     evaluateResume,
+    getAiServiceStats,
 };

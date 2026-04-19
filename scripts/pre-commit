@@ -1,0 +1,46 @@
+#!/bin/sh
+# Pre-commit hook: syntax check + secrets scan
+# Install: cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+echo "Running pre-commit checks..."
+
+# 1. Syntax check all staged .js files
+STAGED_JS=$(git diff --cached --name-only --diff-filter=ACM | grep '\.js$' | grep -v node_modules)
+if [ -n "$STAGED_JS" ]; then
+    echo "Checking JavaScript syntax..."
+    for file in $STAGED_JS; do
+        node --check "$file" 2>&1
+        if [ $? -ne 0 ]; then
+            echo "SYNTAX ERROR in $file — commit blocked."
+            exit 1
+        fi
+    done
+    echo "Syntax check passed."
+fi
+
+# 2. Scan for secrets in staged files
+echo "Scanning for secrets..."
+SECRETS_PATTERN='sk_live_|whsec_live_|-----BEGIN (RSA |EC )?PRIVATE KEY-----|AKIA[0-9A-Z]{16}'
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -v node_modules | grep -v '\.env\.example' | grep -v 'scripts/pre-commit')
+
+if [ -n "$STAGED_FILES" ]; then
+    FOUND=$(echo "$STAGED_FILES" | xargs grep -lE "$SECRETS_PATTERN" 2>/dev/null)
+    if [ -n "$FOUND" ]; then
+        echo "POTENTIAL SECRETS DETECTED in:"
+        echo "$FOUND"
+        echo "Commit blocked. Remove secrets before committing."
+        exit 1
+    fi
+    echo "No secrets found."
+fi
+
+# 3. Check for .env files being committed
+ENV_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^\.env$|/\.env$|\.env\.local$')
+if [ -n "$ENV_FILES" ]; then
+    echo "BLOCKED: .env files should never be committed:"
+    echo "$ENV_FILES"
+    exit 1
+fi
+
+echo "Pre-commit checks passed."
+exit 0

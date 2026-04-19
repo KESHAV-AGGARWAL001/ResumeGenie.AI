@@ -7,6 +7,9 @@ const {
     getTierConfig,
     getUsage,
 } = require('../services/subscriptionService');
+const { TieredCache } = require('../lib/cache');
+
+const webhookIdempotency = new TieredCache({ maxSize: 500, defaultTTL: 60 * 60 * 1000 });
 
 let stripe;
 try {
@@ -141,6 +144,11 @@ router.post('/webhook', async (req, res) => {
         console.error('[Payments] Webhook signature verification failed:', err.message);
         return res.status(400).json({ error: 'Invalid webhook signature' });
     }
+
+    if (webhookIdempotency.has(event.id)) {
+        return res.json({ received: true, deduplicated: true });
+    }
+    webhookIdempotency.set(event.id, true);
 
     try {
         switch (event.type) {
