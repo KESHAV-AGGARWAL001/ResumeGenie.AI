@@ -16,7 +16,6 @@
   "type": "commonjs",
   "dependencies": {
     "@google/genai": "^1.42.0",
-    "@openrouter/sdk": "^0.9.11",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^5.1.0",
@@ -24,7 +23,6 @@
     "joi": "^18.0.2",
     "multer": "^2.0.1",
     "nodemon": "^1.0.2",
-    "openai": "^6.25.0",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
@@ -32,7 +30,5 @@
     "stripe": "^17.7.0",
     "uuid": "^11.1.0"
   },
-  "devDependencies": {
-    "jest": "^25.0.0"
-  }
+  "devDependencies": {}
 }

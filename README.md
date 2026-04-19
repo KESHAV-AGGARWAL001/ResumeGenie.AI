@@ -457,6 +457,8 @@ Auto-loaded based on `NODE_ENV` via `backend/config/environments/index.js`.
 
 ## Setup
 
+> **For a complete step-by-step guide**, see [`docs/SETUP-GUIDE.md`](docs/SETUP-GUIDE.md) — covers prerequisites, Firebase/Stripe configuration, Docker, testing, deployment, monitoring, and troubleshooting.
+
 ### Prerequisites
 
 - Node.js 20+
