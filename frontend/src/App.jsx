@@ -476,7 +476,13 @@ export default function App() {
           </div>
         ) : mode === 'career-insights' ? (
           <div className="w-full h-full rounded-2xl shadow-xl shadow-slate-200/30 border border-slate-200/60 overflow-hidden bg-white">
-            <CareerInsights resumeData={resumeData} />
+            <CareerInsights
+              resumeData={resumeData}
+              onApplyTailored={(data) => {
+                setResumeData(data);
+                toast.success('Tailored resume applied! Switch to Builder to see changes.');
+              }}
+            />
           </div>
         ) : (
           <>
