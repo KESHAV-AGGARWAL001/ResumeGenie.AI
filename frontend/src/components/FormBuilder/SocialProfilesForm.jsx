@@ -1,13 +1,14 @@
 import React from 'react';
+import { Github, Linkedin, Globe, Code2, Trophy } from 'lucide-react';
 
 const SOCIAL_PLATFORMS = [
-    { key: 'github', label: 'GitHub', placeholder: 'https://github.com/username' },
-    { key: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/in/username' },
-    { key: 'leetcode', label: 'LeetCode', placeholder: 'https://leetcode.com/username' },
-    { key: 'codeforces', label: 'Codeforces', placeholder: 'https://codeforces.com/profile/username' },
-    { key: 'codechef', label: 'CodeChef', placeholder: 'https://codechef.com/users/username' },
-    { key: 'gfg', label: 'GeeksforGeeks', placeholder: 'https://auth.geeksforgeeks.org/user/username' },
-    { key: 'portfolio', label: 'Portfolio Website', placeholder: 'https://yourwebsite.com' },
+    { key: 'github', label: 'GitHub', placeholder: 'https://github.com/username', icon: Github },
+    { key: 'linkedin', label: 'LinkedIn', placeholder: 'https://linkedin.com/in/username', icon: Linkedin },
+    { key: 'leetcode', label: 'LeetCode', placeholder: 'https://leetcode.com/username', icon: Code2 },
+    { key: 'codeforces', label: 'Codeforces', placeholder: 'https://codeforces.com/profile/username', icon: Trophy },
+    { key: 'codechef', label: 'CodeChef', placeholder: 'https://codechef.com/users/username', icon: Code2 },
+    { key: 'gfg', label: 'GeeksforGeeks', placeholder: 'https://auth.geeksforgeeks.org/user/username', icon: Code2 },
+    { key: 'portfolio', label: 'Portfolio Website', placeholder: 'https://yourwebsite.com', icon: Globe },
 ];
 
 export default function SocialProfilesForm({ data, onChange }) {
@@ -21,22 +22,23 @@ export default function SocialProfilesForm({ data, onChange }) {
     };
 
     return (
-        <div className="space-y-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        <div className="space-y-5">
+            <p className="text-sm text-slate-500 mb-4">
                 Add links to your professional profiles and portfolio. All fields are optional.
             </p>
 
-            {SOCIAL_PLATFORMS.map(platform => (
-                <div key={platform.key}>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {platform.label}
+            {SOCIAL_PLATFORMS.map(({ key, label, placeholder, icon: Icon }) => (
+                <div key={key}>
+                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-2">
+                        <Icon className="w-3.5 h-3.5 text-slate-400" />
+                        {label}
                     </label>
                     <input
                         type="url"
-                        value={socialProfiles[platform.key] || ''}
-                        onChange={(e) => handleChange(platform.key, e.target.value)}
-                        placeholder={platform.placeholder}
-                        className="w-full px-4 py-3 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                        value={socialProfiles[key] || ''}
+                        onChange={(e) => handleChange(key, e.target.value)}
+                        placeholder={placeholder}
+                        className="w-full px-4 py-3 rounded-xl text-sm transition-all"
                     />
                 </div>
             ))}

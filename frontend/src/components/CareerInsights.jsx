@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
+import { SearchX, Target, ScanLine, Scissors, FileText, Mail } from 'lucide-react';
 import { apiPost } from '../utils/api';
 
 const TABS = [
-    { id: 'gap', label: 'Gap Detect' },
-    { id: 'optimize', label: 'JD Optimize' },
-    { id: 'ats-scan', label: 'ATS Scan' },
-    { id: 'tailor', label: 'Tailor' },
-    { id: 'cover-letter', label: 'Cover Letter' },
-    { id: 'networking-email', label: 'Email Draft' },
+    { id: 'gap', label: 'Gap Detect', icon: SearchX },
+    { id: 'optimize', label: 'JD Optimize', icon: Target },
+    { id: 'ats-scan', label: 'ATS Scan', icon: ScanLine },
+    { id: 'tailor', label: 'Tailor', icon: Scissors },
+    { id: 'cover-letter', label: 'Cover Letter', icon: FileText },
+    { id: 'networking-email', label: 'Email Draft', icon: Mail },
 ];
 
 function SeverityBadge({ severity }) {
@@ -39,7 +40,7 @@ function ActionButton({ onClick, disabled, loading, label, loadingLabel }) {
         <button
             onClick={onClick}
             disabled={disabled || loading}
-            className="w-full py-3 bg-gradient-to-r from-purple-600 to-violet-600 text-white font-bold text-sm rounded-xl hover:shadow-lg hover:shadow-purple-200/50 disabled:opacity-50 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5"
+            className="w-full py-3 bg-gradient-to-r from-purple-600 to-violet-600 text-white font-bold text-sm rounded-xl hover:shadow-lg hover:shadow-purple-200/50 disabled:opacity-50 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 active:scale-[0.98]"
         >
             {loading && <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
             {loading ? loadingLabel : label}
@@ -177,20 +178,24 @@ export default function CareerInsights({ resumeData, onApplyTailored }) {
     return (
         <div className="h-full flex flex-col overflow-hidden bg-white">
             {/* Tab selector */}
-            <div className="flex gap-1 border-b border-slate-100 bg-slate-50/50 p-1.5 mx-4 mt-4 rounded-xl overflow-x-auto custom-scrollbar">
-                {TABS.map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => { setActiveTab(tab.id); setError(null); }}
-                        className={`px-3 py-2 text-[11px] font-bold rounded-lg transition-all duration-200 whitespace-nowrap ${
-                            activeTab === tab.id
-                                ? 'text-purple-700 bg-white shadow-sm ring-1 ring-black/[0.04]'
-                                : 'text-slate-400 hover:text-slate-600'
-                        }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+            <div className="flex gap-1 border-b border-slate-100 bg-slate-50/50 p-1.5 mx-4 mt-4 rounded-2xl overflow-x-auto custom-scrollbar">
+                {TABS.map(tab => {
+                    const Icon = tab.icon;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => { setActiveTab(tab.id); setError(null); }}
+                            className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold rounded-lg transition-all duration-200 whitespace-nowrap ${
+                                activeTab === tab.id
+                                    ? 'text-purple-700 bg-white shadow-sm ring-1 ring-black/[0.04]'
+                                    : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                        >
+                            <Icon className="w-3.5 h-3.5" />
+                            {tab.label}
+                        </button>
+                    );
+                })}
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">

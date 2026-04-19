@@ -1,4 +1,5 @@
 import React from 'react';
+import { Trophy, Plus, X } from 'lucide-react';
 
 export default function AchievementsForm({ data, onChange }) {
     const achievements = data.achievements || [];
@@ -16,15 +17,19 @@ export default function AchievementsForm({ data, onChange }) {
     };
 
     return (
-        <div className="space-y-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        <div className="space-y-5">
+            <p className="text-sm text-slate-500 mb-4">
                 List your achievements, awards, publications, or notable accomplishments.
             </p>
 
             {achievements.length === 0 && (
-                <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                    No achievements added yet. Click "Add Achievement" to get started.
-                </p>
+                <div className="empty-state">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
+                        <Trophy className="w-6 h-6 text-slate-300" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-400">No achievements added yet</p>
+                    <p className="text-xs text-slate-300">Click "Add Achievement" to get started</p>
+                </div>
             )}
 
             <div className="space-y-3">
@@ -35,13 +40,13 @@ export default function AchievementsForm({ data, onChange }) {
                             value={achievement}
                             onChange={(e) => updateAchievement(index, e.target.value)}
                             placeholder="Won Best Hack Award at TechCrunch Disrupt 2023"
-                            className="flex-1 px-4 py-3 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                            className="flex-1 px-4 py-3 rounded-xl text-sm transition-all"
                         />
                         <button
                             onClick={() => removeAchievement(index)}
-                            className="px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg font-medium"
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         >
-                            ✕
+                            <X className="w-3.5 h-3.5" />
                         </button>
                     </div>
                 ))}
@@ -49,9 +54,9 @@ export default function AchievementsForm({ data, onChange }) {
 
             <button
                 onClick={addAchievement}
-                className="w-full py-3 rounded-lg border-2 border-dashed border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 font-medium transition-all"
+                className="w-full py-3.5 rounded-xl border-2 border-dashed border-slate-200 text-slate-500 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50/50 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2"
             >
-                + Add Achievement
+                <Plus className="w-4 h-4" /> Add Achievement
             </button>
         </div>
     );

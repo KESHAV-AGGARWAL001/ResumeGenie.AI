@@ -469,7 +469,7 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex overflow-hidden p-4 gap-4 max-w-[1920px] mx-auto w-full">
+      <main className="flex-1 flex overflow-hidden p-5 gap-5 max-w-[1920px] mx-auto w-full">
         {mode === 'resume-analyzer' ? (
           <div className="w-full h-full rounded-2xl shadow-xl shadow-slate-200/30 border border-slate-200/60 overflow-hidden bg-white">
             <ResumeAnalyzer />
@@ -542,7 +542,7 @@ export default function App() {
             </div>
 
             {/* Right Panel: PDF Preview */}
-            <div className="w-1/2 flex flex-col rounded-2xl border border-slate-200/60 overflow-hidden bg-slate-100/50 relative">
+            <div className="w-1/2 flex flex-col rounded-2xl border border-slate-200/60 overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100/50 relative">
               <div className="flex-1 p-6 flex justify-center items-start overflow-y-auto custom-scrollbar">
                 <div className="shadow-2xl shadow-slate-400/10 rounded-lg transition-transform duration-300 w-full h-full bg-white ring-1 ring-slate-200/50">
                   <Preview pdfUrl={pdfUrl} loading={loading} />

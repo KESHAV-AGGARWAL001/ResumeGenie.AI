@@ -56,7 +56,7 @@ export default function FormBuilder({ resumeData, onDataChange, onGenerateResume
                 {/* Thin progress bar */}
                 <div className="h-1 bg-slate-100">
                     <div
-                        className="h-full bg-gradient-to-r from-purple-600 to-pink-500 transition-all duration-500 ease-out rounded-r-full"
+                        className="h-full bg-gradient-to-r from-purple-600 to-pink-500 transition-all duration-500 ease-out rounded-r-full shadow-[0_2px_8px_-2px_rgba(147,51,234,0.3)]"
                         style={{ width: `${progress}%` }}
                     />
                 </div>
@@ -79,7 +79,7 @@ export default function FormBuilder({ resumeData, onDataChange, onGenerateResume
                                 currentStep === step.id
                                     ? 'bg-purple-600 text-white'
                                     : currentStep > step.id
-                                        ? 'bg-emerald-500 text-white'
+                                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
                                         : 'bg-slate-200 text-slate-400'
                             }`}>
                                 {currentStep > step.id ? (
@@ -112,7 +112,8 @@ export default function FormBuilder({ resumeData, onDataChange, onGenerateResume
             </div>
 
             {/* Navigation */}
-            <div className="px-6 py-4 border-t border-slate-100 flex justify-between items-center bg-white/80 backdrop-blur-sm sticky bottom-0 z-10">
+            <div className="h-px bg-gradient-to-r from-transparent via-slate-200/60 to-transparent" />
+            <div className="px-6 py-4 flex justify-between items-center bg-white/80 backdrop-blur-sm sticky bottom-0 z-10">
                 <button
                     onClick={handlePrevious}
                     disabled={currentStep === 1}

@@ -4,7 +4,7 @@ import { apiGet, apiPost, apiPostFile } from '../utils/api';
 
 // --- Inline UI Components (Tailwind) ---
 const Card = ({ children, className = '' }) => (
-    <div className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl rounded-2xl overflow-hidden ${className}`}>{children}</div>
+    <div className={`bg-white border border-slate-200/80 shadow-lg shadow-slate-200/20 rounded-2xl overflow-hidden ${className}`}>{children}</div>
 );
 const CardHeader = ({ children, className = '' }) => (
     <div className={`p-6 pb-2 ${className}`}>{children}</div>
@@ -16,14 +16,14 @@ const CardContent = ({ children, className = '' }) => (
     <div className={`p-6 pt-0 ${className}`}>{children}</div>
 );
 const Alert = ({ children, variant, className = '' }) => (
-    <div className={`p-3 rounded-lg flex items-center text-sm ${variant === 'destructive' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-gray-50 text-gray-800'} ${className}`}>
+    <div className={`p-3 rounded-lg flex items-center text-sm ${variant === 'destructive' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-slate-50 text-slate-800'} ${className}`}>
         {children}
     </div>
 );
 const Badge = ({ children, variant, className = '' }) => {
-    let style = "bg-gray-100 text-gray-800 border-gray-200";
+    let style = "bg-slate-100 text-slate-700 border-slate-200";
     if (variant === 'destructive') style = "bg-red-100 text-red-700 border-red-200";
-    if (variant === 'outline') style = "bg-transparent border border-gray-300 text-gray-600";
+    if (variant === 'outline') style = "bg-transparent border border-slate-200 text-slate-600";
     if (variant === 'secondary') style = "bg-purple-100 text-purple-700 border-purple-200";
     return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${style} ${className}`}>{children}</span>;
 }
@@ -37,7 +37,7 @@ function ScoreRing({ score, label, color }) {
     return (
         <div className="flex flex-col items-center gap-1">
             <svg width="96" height="96" viewBox="0 0 96 96">
-                <circle cx="48" cy="48" r={r} fill="none" stroke="currentColor" strokeWidth="8" className="text-gray-200" />
+                <circle cx="48" cy="48" r={r} fill="none" stroke="currentColor" strokeWidth="8" className="text-slate-100" />
                 <circle
                     cx="48" cy="48" r={r} fill="none"
                     stroke={color} strokeWidth="8"
@@ -48,7 +48,7 @@ function ScoreRing({ score, label, color }) {
                 />
                 <text x="48" y="53" textAnchor="middle" fontSize="20" fontWeight="bold" fill={color}>{score}</text>
             </svg>
-            <span className="text-xs font-medium text-gray-600">{label}</span>
+            <span className="text-xs font-medium text-slate-500">{label}</span>
         </div>
     );
 }
@@ -206,7 +206,7 @@ export default function ResumeAnalyzer() {
                                     <div className="flex flex-col items-center gap-2">
                                         <CheckCircle className="w-8 h-8 text-green-500" />
                                         <span className="font-semibold text-green-700 text-sm">{resumeFile.name}</span>
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-xs text-slate-400">
                                             {extractedText ? `✓ Text extracted — ${extractedText.split(/\s+/).length} words` : 'Processing...'}
                                         </span>
                                         <button
@@ -224,7 +224,7 @@ export default function ResumeAnalyzer() {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col items-center gap-2 text-gray-500">
+                                    <div className="flex flex-col items-center gap-2 text-slate-400">
                                         <FileText className="w-10 h-10 opacity-40" />
                                         <span className="text-sm font-medium">Drag & drop your PDF here, or <span className="text-purple-500 underline">click to browse</span></span>
                                     </div>
@@ -265,13 +265,13 @@ export default function ResumeAnalyzer() {
                 {/* RIGHT */}
                 <div className="flex-1 flex flex-col gap-4">
                     {!analysisStarted && !aiLoading && (
-                        <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center bg-white text-gray-400">
+                        <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center bg-white text-slate-300">
                             <Cpu className="w-16 h-16 mb-4 opacity-50" />
                             <p>Upload your resume and click analyze to see AI-powered insights.</p>
                         </div>
                     )}
                     {aiLoading && (
-                        <div className="flex-1 flex flex-col items-center justify-center border border-gray-200 rounded-2xl p-12 text-center bg-white animate-pulse text-purple-600">
+                        <div className="flex-1 flex flex-col items-center justify-center border border-slate-200 rounded-2xl p-12 text-center bg-white animate-pulse text-purple-600">
                             <Cpu className="w-16 h-16 mb-4" />
                             <p className="font-medium">AI is analyzing your resume...</p>
                         </div>
@@ -282,7 +282,7 @@ export default function ResumeAnalyzer() {
 
                     {aiResult && !aiLoading && (
                         <Card className="flex-1 flex flex-col h-full bg-white">
-                            <CardHeader className="border-b border-gray-100 pb-4">
+                            <CardHeader className="border-b border-slate-100 pb-4">
                                 <CardTitle className="text-purple-600"><Cpu className="w-5 h-5" /> Analysis Results</CardTitle>
                                 <div className="flex flex-wrap justify-center gap-6 mt-4">
                                     <ScoreRing score={aiResult.overall_score} label="Overall Score" color="#9333ea" />

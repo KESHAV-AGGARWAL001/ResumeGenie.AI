@@ -1,5 +1,6 @@
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { Award, Plus } from 'lucide-react';
 
 export default function CertificationsForm({ data, onChange }) {
     const certifications = data.certifications || [];
@@ -27,68 +28,71 @@ export default function CertificationsForm({ data, onChange }) {
     };
 
     return (
-        <div className="space-y-8">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        <div className="space-y-6">
+            <p className="text-sm text-slate-500 mb-4">
                 Add your professional certifications and credentials.
             </p>
 
             {certifications.length === 0 && (
-                <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                    No certifications added yet. Click "Add Certification" to get started.
-                </p>
+                <div className="empty-state">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
+                        <Award className="w-6 h-6 text-slate-300" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-400">No certifications added yet</p>
+                    <p className="text-xs text-slate-300">Click "Add Certification" to get started</p>
+                </div>
             )}
 
             {certifications.map((cert, certIndex) => (
-                <div key={cert.id} className="p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-gray-200 dark:border-gray-700 space-y-4">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-purple-600 dark:text-purple-400">
+                <div key={cert.id} className="form-card space-y-4">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-bold text-purple-600">
                             Certification #{certIndex + 1}
                         </h3>
                         <button
                             onClick={() => removeCertification(cert.id)}
-                            className="text-red-500 hover:text-red-700 font-medium"
+                            className="px-3 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         >
                             Remove
                         </button>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Certification Name <span className="text-red-500">*</span>
+                        <label className="block text-xs font-bold text-slate-600 mb-2">
+                            Certification Name <span className="text-pink-500">*</span>
                         </label>
                         <input
                             type="text"
                             value={cert.name}
                             onChange={(e) => updateCertification(cert.id, 'name', e.target.value)}
                             placeholder="AWS Certified Solutions Architect"
-                            className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                            className="w-full px-4 py-2.5 rounded-xl text-sm transition-all"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Issuing Organization <span className="text-red-500">*</span>
+                            <label className="block text-xs font-bold text-slate-600 mb-2">
+                                Issuing Organization <span className="text-pink-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 value={cert.issuer}
                                 onChange={(e) => updateCertification(cert.id, 'issuer', e.target.value)}
                                 placeholder="Amazon Web Services"
-                                className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                                className="w-full px-4 py-2.5 rounded-xl text-sm transition-all"
                             />
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Date Obtained <span className="text-red-500">*</span>
+                            <label className="block text-xs font-bold text-slate-600 mb-2">
+                                Date Obtained <span className="text-pink-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 value={cert.date}
                                 onChange={(e) => updateCertification(cert.id, 'date', e.target.value)}
                                 placeholder="2023"
-                                className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none"
+                                className="w-full px-4 py-2.5 rounded-xl text-sm transition-all"
                             />
                         </div>
                     </div>
@@ -97,9 +101,9 @@ export default function CertificationsForm({ data, onChange }) {
 
             <button
                 onClick={addCertification}
-                className="w-full py-3 rounded-lg border-2 border-dashed border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 font-medium transition-all"
+                className="w-full py-3.5 rounded-xl border-2 border-dashed border-slate-200 text-slate-500 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50/50 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2"
             >
-                + Add Certification
+                <Plus className="w-4 h-4" /> Add Certification
             </button>
         </div>
     );
