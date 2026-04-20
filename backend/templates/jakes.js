@@ -11,8 +11,8 @@ function generate(data) {
     ${personalInfo.location ? escapeLaTeX(personalInfo.location) + ' \\\\' : ''} 
     \\small \\href{mailto:${escapeLaTeX(personalInfo.email)}}{${escapeLaTeX(personalInfo.email)}} $|$ 
     \\href{tel:${personalInfo.phone}}{${escapeLaTeX(personalInfo.phone)}} $|$ 
-    \\href{${socialProfiles.linkedin}}{LinkedIn} $|$
-    \\href{${socialProfiles.github}}{GitHub}
+    \\href{${escapeLaTeX(socialProfiles.linkedin)}}{LinkedIn} $|$
+    \\href{${escapeLaTeX(socialProfiles.github)}}{GitHub}
 \\end{center}
 `;
 

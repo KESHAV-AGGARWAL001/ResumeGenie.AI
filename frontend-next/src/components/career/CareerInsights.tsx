@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { SearchX, Target, ScanLine, Scissors, FileText, Mail } from 'lucide-react';
+import { SearchX, Target, ScanLine, Scissors, FileText, Mail, DollarSign } from 'lucide-react';
 import { apiPost } from '@/lib/api';
-import type { ResumeData } from '@/lib/types';
+import type { ResumeData, SalaryEstimate } from '@/lib/types';
 
 interface TabDef {
   id: TabId;
@@ -11,7 +11,7 @@ interface TabDef {
   icon: React.ComponentType<{ className?: string }>;
 }
 
-type TabId = 'gap' | 'optimize' | 'ats-scan' | 'tailor' | 'cover-letter' | 'networking-email';
+type TabId = 'gap' | 'optimize' | 'ats-scan' | 'tailor' | 'cover-letter' | 'networking-email' | 'salary';
 
 const TABS: TabDef[] = [
   { id: 'gap', label: 'Gap Detect', icon: SearchX },
@@ -20,6 +20,7 @@ const TABS: TabDef[] = [
   { id: 'tailor', label: 'Tailor', icon: Scissors },
   { id: 'cover-letter', label: 'Cover Letter', icon: FileText },
   { id: 'networking-email', label: 'Email Draft', icon: Mail },
+  { id: 'salary', label: 'Salary', icon: DollarSign },
 ];
 
 /* ---------- Shared sub-components ---------- */
@@ -215,6 +216,9 @@ export default function CareerInsights({ resumeData, onApplyTailored }: CareerIn
   const [tailorResult, setTailorResult] = useState<TailorResult | null>(null);
   const [coverLetterResult, setCoverLetterResult] = useState<CoverLetterResult | null>(null);
   const [emailResult, setEmailResult] = useState<EmailResult | null>(null);
+  const [salaryResult, setSalaryResult] = useState<SalaryEstimate | null>(null);
+  const [salaryRole, setSalaryRole] = useState('');
+  const [salaryLocation, setSalaryLocation] = useState('');
 
   const handleCopy = async (text: string) => {
     await navigator.clipboard.writeText(text);
@@ -325,6 +329,27 @@ export default function CareerInsights({ resumeData, onApplyTailored }: CareerIn
       setEmailResult(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Email drafting failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSalaryEstimate = async () => {
+    if (!salaryRole.trim() || !salaryLocation.trim()) return;
+    setLoading(true);
+    setError(null);
+    setSalaryResult(null);
+    try {
+      const res = await apiPost('/career/salary-estimate', {
+        resumeData,
+        targetRole: salaryRole,
+        targetLocation: salaryLocation,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Salary estimation failed');
+      setSalaryResult(data);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Salary estimation failed');
     } finally {
       setLoading(false);
     }
@@ -1084,6 +1109,116 @@ export default function CareerInsights({ resumeData, onApplyTailored }: CareerIn
                         </span>
                       ))}
                     </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* -- Salary Estimator -- */}
+        {activeTab === 'salary' && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-2">Target Role</label>
+              <input
+                type="text"
+                value={salaryRole}
+                onChange={(e) => setSalaryRole(e.target.value)}
+                placeholder="e.g., Senior Software Engineer"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-2">Target Location</label>
+              <input
+                type="text"
+                value={salaryLocation}
+                onChange={(e) => setSalaryLocation(e.target.value)}
+                placeholder="e.g., San Francisco, CA or Bangalore, India"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+            <ActionButton
+              onClick={handleSalaryEstimate}
+              disabled={!salaryRole.trim() || !salaryLocation.trim()}
+              loading={loading}
+              label="Estimate Salary"
+              loadingLabel="Estimating..."
+            />
+
+            {salaryResult && (
+              <div className="space-y-4 mt-4">
+                {/* Salary Range Bar */}
+                <div className="p-5 bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl border border-emerald-100">
+                  <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-4">
+                    Annual Salary Range ({salaryResult.currency})
+                  </p>
+                  <div className="flex items-end justify-between mb-3">
+                    <div className="text-center">
+                      <p className="text-lg font-black text-slate-500">
+                        {salaryResult.currency === 'INR' ? '₹' : salaryResult.currency === 'EUR' ? '€' : salaryResult.currency === 'GBP' ? '£' : '$'}
+                        {(salaryResult.low / 1000).toFixed(0)}K
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-bold">25th %ile</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-black text-emerald-600">
+                        {salaryResult.currency === 'INR' ? '₹' : salaryResult.currency === 'EUR' ? '€' : salaryResult.currency === 'GBP' ? '£' : '$'}
+                        {(salaryResult.median / 1000).toFixed(0)}K
+                      </p>
+                      <p className="text-[10px] text-emerald-500 font-bold">Median</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-black text-slate-500">
+                        {salaryResult.currency === 'INR' ? '₹' : salaryResult.currency === 'EUR' ? '€' : salaryResult.currency === 'GBP' ? '£' : '$'}
+                        {(salaryResult.high / 1000).toFixed(0)}K
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-bold">75-90th %ile</p>
+                    </div>
+                  </div>
+                  {/* Visual bar */}
+                  <div className="h-3 bg-slate-200 rounded-full overflow-hidden relative">
+                    <div
+                      className="absolute h-full bg-gradient-to-r from-amber-400 via-emerald-500 to-emerald-600 rounded-full"
+                      style={{ left: '0%', width: '100%' }}
+                    />
+                    <div
+                      className="absolute h-full w-1 bg-white shadow-sm rounded-full"
+                      style={{ left: `${((salaryResult.median - salaryResult.low) / (salaryResult.high - salaryResult.low)) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Factors */}
+                {salaryResult.factors.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 mb-3">Key Factors</h3>
+                    <div className="space-y-2">
+                      {salaryResult.factors.map((factor, i) => (
+                        <div key={i} className="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <span className="flex-shrink-0 w-5 h-5 rounded-md bg-purple-100 text-purple-600 text-[10px] font-black flex items-center justify-center mt-0.5">
+                            {i + 1}
+                          </span>
+                          <p className="text-xs text-slate-600 leading-relaxed">{factor}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Negotiation Tips */}
+                {salaryResult.negotiationTips.length > 0 && (
+                  <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                    <h3 className="text-sm font-bold text-blue-800 mb-2">Negotiation Tips</h3>
+                    <ul className="space-y-1.5">
+                      {salaryResult.negotiationTips.map((tip, i) => (
+                        <li key={i} className="text-xs text-blue-700 flex items-start gap-1.5">
+                          <span className="text-blue-400 mt-0.5">&#8226;</span>
+                          {tip}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>

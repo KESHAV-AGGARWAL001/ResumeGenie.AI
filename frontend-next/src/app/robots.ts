@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/builder', '/editor', '/analyzer', '/career', '/api/'],
+        disallow: ['/builder', '/editor', '/analyzer', '/career', '/interview-prep', '/api/'],
       },
     ],
     sitemap: 'https://resumegenie.ai/sitemap.xml',

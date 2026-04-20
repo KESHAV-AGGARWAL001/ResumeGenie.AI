@@ -3,6 +3,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Briefcase, Plus, X } from 'lucide-react';
 import type { ResumeData, Experience } from '@/lib/types';
+import BulletRewriter from '@/components/builder/BulletRewriter';
 
 interface ExperienceFormProps {
   data: ResumeData;
@@ -184,6 +185,11 @@ export default function ExperienceForm({ data, onChange }: ExperienceFormProps) 
                     onChange={(e) => updateBulletPoint(exp.id, index, e.target.value)}
                     placeholder="Describe your achievement or responsibility"
                     className="flex-1 px-4 py-2.5 rounded-xl text-sm transition-all"
+                  />
+                  <BulletRewriter
+                    bulletPoint={bullet}
+                    context={{ role: exp.position, company: exp.company, techStack: exp.techStack || [] }}
+                    onRewrite={(text) => updateBulletPoint(exp.id, index, text)}
                   />
                   {exp.bulletPoints.length > 1 && (
                     <button

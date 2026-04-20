@@ -7,6 +7,7 @@ import { useAutoSave } from '@/hooks/useAutoSave';
 import { apiPost } from '@/lib/api';
 import FormBuilder from '@/components/builder/FormBuilder';
 import PdfPreview from '@/components/preview/PdfPreview';
+import AtsScoreWidget from '@/components/builder/AtsScoreWidget';
 import type { ResumeData } from '@/lib/types';
 import toast from 'react-hot-toast';
 
@@ -147,6 +148,8 @@ export default function BuilderPage() {
           </div>
         </div>
       </div>
+
+      <AtsScoreWidget />
     </>
   );
 }

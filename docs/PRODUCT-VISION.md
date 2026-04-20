@@ -6,9 +6,10 @@ The platform brings together:
 
 - Structured resume creation  
 - LaTeX-quality resume rendering  
-- AI-driven resume analysis  
-- Job-description alignment  
-- Career insights and (future) career gap detection  
+- AI-driven resume analysis and bullet rewriting  
+- Job-description alignment and ATS optimization  
+- Career insights, interview preparation, and salary estimation  
+- LinkedIn profile import for quick resume setup  
 
 The long-term goal is to build **an AI Career Assistant**, not just a resume builder.
 
@@ -16,7 +17,7 @@ The long-term goal is to build **an AI Career Assistant**, not just a resume bui
 
 ## Core Product Capabilities (Today)
 
-The system currently supports four main workflows.
+The system currently supports the following main workflows.
 
 ### 1. Structured Resume Builder
 
@@ -26,8 +27,8 @@ Sections include:
 
 - Personal Information  
 - Social Links  
-- Experience  
-- Projects  
+- Experience (with inline AI bullet rewriting)  
+- Projects (with inline AI bullet rewriting)  
 - Skills  
 - Education  
 - Achievements  
@@ -36,6 +37,10 @@ Sections include:
 The platform converts structured data into **LaTeX templates**, allowing users to generate **high-quality professional PDFs automatically**.
 
 This lets users produce **LaTeX-quality resumes without any LaTeX expertise**.
+
+**AI Bullet Rewriter** — Each bullet point in experience and project sections has a sparkle icon that generates 3 improved versions using STAR/XYZ methodology with explanations of what was improved.
+
+**LinkedIn Import** — Users can paste their LinkedIn profile text and auto-fill resume sections. The AI parses the unstructured text into structured resume data with a confidence score and preview before import.
 
 ### 2. Multi-Template Resume Rendering
 
@@ -47,14 +52,7 @@ Users can choose from several professional resume templates:
 - ModernCV  
 - ModernDeedy  
 
-The template system dynamically generates LaTeX based on:
-
-```text
-resumeData
-templateId
-```
-
-Then the system compiles the LaTeX into a PDF using a **Dockerized XeLaTeX environment**.
+The template system dynamically generates LaTeX based on `resumeData` and `templateId`, then compiles via a **Dockerized XeLaTeX environment**.
 
 This ensures:
 
@@ -82,21 +80,75 @@ The generated PDF is displayed in a **real-time preview panel** with download su
 Users can:
 
 - Upload an existing resume PDF for analysis.  
-- (Future refinement) Analyze the resume created inside the platform against specific job descriptions.  
+- Analyze the resume created inside the platform against specific job descriptions.  
 
-The system:
+The system uses **Gemini 2.5 Flash** (via `@google/genai` SDK):
 
 1. Extracts plain text from PDFs using `pdf-parse`.  
-2. Sends it to the AI analysis service (currently GPT-4o-mini via OpenAI).  
+2. Performs deterministic scoring (rule-based) for numeric scores.  
+3. Uses AI for qualitative analysis, suggestions, and rewrites.  
 
 AI analysis provides:
 
 - Overall resume score  
-- Score breakdown (structure, bullet quality, quantification, skill relevance, chronology consistency)  
+- Score breakdown (technical depth, engineering impact, technology relevance, project complexity, role alignment)  
 - Structural issues and suggested fixes  
 - Bullet-level improvements (rewritten bullets)  
 - Missing keywords and skill gaps  
 - Job-description similarity score (when a JD is provided)  
+
+### 5. Real-Time ATS Score Widget
+
+A floating widget on builder and editor pages that provides quick ATS compatibility feedback:
+
+- Enter a target job description  
+- Get a score (0-100) with color coding (green/amber/red)  
+- See top 3 missing keywords  
+- Get the highest-impact suggestion  
+- Collapsible and dismissible — stays out of the way until needed  
+
+### 6. Career Insights (7 AI Tabs)
+
+| Feature | Description |
+|---|---|
+| **Career Gap Detection** | Identifies missing skills/experience for a target role with action plans |
+| **JD Optimization** | Suggests specific resume modifications to maximize JD alignment |
+| **ATS Keyword Scan** | Analyzes keyword matches/gaps by category (technical, soft skills, tools) |
+| **Resume Tailoring** | Rewrites resume content to maximize JD fit while preserving structure |
+| **Cover Letter Generation** | Generates plain text + compilable LaTeX cover letters |
+| **Networking Email Draft** | Drafts cold outreach emails with formal/conversational/brief tone options |
+| **Salary Estimator** | Estimates salary range (low/median/high) with factors analysis and negotiation tips |
+
+### 7. AI Interview Preparation
+
+Full interview prep page accessible from the top navigation:
+
+- Select interview type: **Behavioral**, **Technical**, or **Situational**  
+- Enter a job description for targeted questions  
+- AI generates 8-10 tailored questions based on the user's resume  
+- Each question includes a model answer and a preparation tip  
+- Collapsible cards for easy review  
+
+### 8. Free Resume Roast (Public)
+
+A public, no-authentication-required page at `/roast` for viral growth:
+
+- Paste resume text — no sign-up needed  
+- AI delivers brutally honest, humorous feedback  
+- Roast score (0-100) with flame rating  
+- Specific improvement suggestions  
+- Meme-style verdict  
+- CTA to convert roast users into full platform users  
+
+### 9. Subscription & Payments
+
+Three-tier system powered by **Stripe Checkout + Webhooks**:
+
+| Tier | Compilations | AI Analyses | Templates | Price |
+|---|---|---|---|---|
+| **Starter** | 3/day | 1/day | 2 | Free |
+| **Pro** | Unlimited | 10/day | 5 | $9.99/mo |
+| **Enterprise** | Unlimited | Unlimited | 5 + custom | $29.99/mo |
 
 ---
 
@@ -104,38 +156,7 @@ AI analysis provides:
 
 ResumeGenie.AI is evolving towards a **full AI Career Assistant** with capabilities beyond resume generation.
 
-### 1. Career Gap Detection
-
-AI will identify missing skills or experience for specific job roles and provide concrete improvement plans.
-
-Example insight:
-
-```text
-Your profile currently matches Backend Engineer roles at 62%.
-
-To increase your chances:
-• Add hands-on experience with distributed systems or message queues.
-• Demonstrate API scalability (through performance metrics or benchmarks).
-• Include experience with caching (Redis/Memcached) or event-driven architectures.
-```
-
-### 2. Resume Personalization
-
-Automatically generate multiple resume versions tailored for:
-
-- Backend roles  
-- Frontend roles  
-- Full-stack roles  
-- DevOps / SRE roles  
-- ML / Data roles (future)  
-
-Each version would:
-
-- Re-weight sections (e.g., projects vs experience).  
-- Emphasize different bullet points.  
-- Reorder skills by relevance to the target role.  
-
-### 3. Job Matching
+### 1. Job Matching
 
 AI will recommend jobs based on:
 
@@ -150,7 +171,7 @@ Over time, the system can:
 - Learn which profiles get callbacks.  
 - Improve its matching and scoring models.  
 
-### 4. Application Tracking
+### 2. Application Tracking
 
 Users will be able to track their job applications inside the platform:
 
@@ -160,10 +181,10 @@ Users will be able to track their job applications inside the platform:
 
 This history will power:
 
-- Personalized suggestions (e.g., “You often lose at System Design rounds — focus on those skills”).  
+- Personalized suggestions (e.g., "You often lose at System Design rounds — focus on those skills").  
 - Better AI guidance for future applications.  
 
-### 5. Recruiter Integration (Future Phase)
+### 3. Recruiter Integration (Future Phase)
 
 In a later phase, companies may:
 
@@ -186,139 +207,35 @@ This creates a **two-sided marketplace** where:
 
 ### Frontend
 
-Frameworks and tools:
-
-- **React 19**  
-- **Vite 7**  
-- **TailwindCSS 4**  
+- **Next.js 15** (App Router) + **React 19** + **TypeScript**  
+- **TailwindCSS 4** for styling  
 - **Monaco Editor** for LaTeX editing  
-
-Services:
-
+- **Zustand** for state management  
 - **Firebase Authentication** (Google sign-in)  
-- **Firestore** for:
-  - Saving `resumeData`  
-  - Saving LaTeX source per user  
+- **Firestore** for data persistence  
 
-Primary responsibilities:
-
-- Structured resume form builder (multi-step)  
-- Template selection UI and preview cards  
-- Real-time PDF preview (via backend compile endpoint)  
-- LaTeX editor experience for power users  
-- AI suggestion and analysis UIs:
-  - AI Consultant (form-based resume + JD)  
-  - Resume PDF Analyzer (uploaded PDF + JD)  
+Route groups:
+- `(app)` — Authenticated: builder, editor, analyzer, career, interview-prep  
+- `(marketing)` — Public: landing, pricing, templates, blog, roast  
 
 ### Backend
 
-Framework:
+- **Node.js 20** + **Express 5**  
+- **Gemini 2.5 Flash** via `@google/genai` SDK  
+- **Firebase Admin SDK** for auth + Firestore  
+- **Stripe** for payments  
+- Built-in LRU Cache, Circuit Breaker, Job Queue, Structured Logging  
 
-- **Node.js**  
-- **Express 5**  
+### Security
 
-Key libraries:
-
-- **Joi** — Input validation for `resumeData`.  
-- **multer** — PDF file uploads.  
-- **pdf-parse** — PDF text extraction.  
-- **uuid** — Per-compilation work directories.  
-
-Primary responsibilities:
-
-- Expose REST endpoints for:
-  - Compiling LaTeX to PDF (`/compile`)  
-  - Generating LaTeX from structured data (`/template/generate`, `/resume/generate-latex`)  
-  - Validating `resumeData` (`/resume/validate`)  
-  - Uploading PDFs and extracting text (`/upload`, `/upload/extract`)  
-  - AI resume analysis (`/ai/analyze`)  
-- Enforce schema validation for structured resume data.  
-- Orchestrate Docker-based LaTeX compilation with custom fonts and templates.  
-
-### AI Layer
-
-Model:
-
-- **GPT-4o-mini** (via OpenAI SDK)
-
-Responsibilities:
-
-- Evaluate resume quality and assign an overall score.  
-- Break down scores into dimensions (structure, bullet quality, quantification, relevance, chronology).  
-- Suggest improvements and rewrite bullet points.  
-- Identify missing or weak keywords based on job descriptions.  
-- Compute similarity / match scores between resumes and job descriptions.  
-
-The AI layer is stateless per request, but can be combined with user history (Firestore) in future iterations.
-
-### LaTeX Rendering System
-
-Environment:
-
-```text
-blang/latex:ctanfull
-XeLaTeX
-Custom fonts (Lato / Raleway)
-Custom resume templates and classes
-```
-
-Pipeline:
-
-```text
-Resume Data
-→ Template Engine (templateId)
-→ LaTeX Source
-→ Docker XeLaTeX
-→ Compiled PDF
-```
-
-This design:
-
-- Isolates LaTeX complexity behind a stable API.  
-- Keeps fonts and classes consistent across machines.  
-- Simplifies future template additions.  
-
----
-
-## System Workflows (Detailed)
-
-### Resume Creation Flow
-
-```text
-User Form Input
-→ Build resumeData in frontend state
-→ User selects template (templateId)
-→ POST /template/generate (resumeData + templateId)
-→ Backend template engine generates LaTeX
-→ Frontend updates LaTeX editor
-→ POST /compile (latex)
-→ Docker XeLaTeX compiles PDF
-→ Frontend displays PDF preview + download button
-```
-
-### Resume Analysis Flow (PDF Upload)
-
-```text
-User uploads PDF
-→ POST /upload
-→ Backend stores file and returns URL
-→ GET /upload/extract?filename=...
-→ Backend runs pdf-parse to get plain text
-→ Frontend sends { resumeText, jobDescription? } to /ai/analyze
-→ AI layer returns scores, issues, rewritten bullets, missing keywords
-→ Frontend displays analysis across tabs (summary, scores, issues, bullets)
-```
-
-### Real-Time Editing Flow (LaTeX)
-
-```text
-User edits LaTeX in Monaco editor
-→ Clicks "Compile"
-→ Frontend sends current LaTeX to /compile
-→ Backend runs Docker XeLaTeX
-→ PDF stream is sent back
-→ Frontend updates preview iframe
-```
+- Content Security Policy headers  
+- CORS strict origin whitelist  
+- Input validation and length truncation  
+- LaTeX escaping for all user input  
+- Error sanitization in production  
+- Iframe sandbox on PDF preview  
+- Redirect URL validation for Stripe  
+- Error boundaries in both route groups  
 
 ---
 
@@ -330,12 +247,11 @@ Three core principles guide ResumeGenie.AI:
    Resumes must look and read like those from top-performing candidates at leading tech companies and competitive roles.
 
 2. **AI-driven insights**  
-   The platform should not just “generate content”, but **explain weaknesses**, highlight gaps, and provide actionable improvements.
+   The platform should not just "generate content", but **explain weaknesses**, highlight gaps, and provide actionable improvements.
 
 3. **Career optimization**  
    The north star metric is **improved interview and offer rates**, not just the number of PDFs generated.
 
 Over time, the AI Career Assistant should help users move from:
 
-> “I need a resume” → “I have a clear, data-driven plan to grow my career.”
-
+> "I need a resume" → "I have a clear, data-driven plan to grow my career."

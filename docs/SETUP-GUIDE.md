@@ -62,8 +62,8 @@ cd ResumeGenie.AI
 cd backend
 npm install
 
-# Install frontend dependencies
-cd ../frontend
+# Install frontend dependencies (Next.js)
+cd ../frontend-next
 npm install
 
 # Return to project root
@@ -97,15 +97,6 @@ Open `backend/.env` and fill in your values:
 
 ```env
 # ─── Firebase (REQUIRED) ────────────────────────────────────────────
-# Get these from Firebase Console → Project Settings → General
-VITE_FIREBASE_API_KEY=AIzaSy...
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
-VITE_FIREBASE_APP_ID=1:000000000000:web:xxxxxxxx
-
-# Firebase Admin (REQUIRED for backend auth)
 FIREBASE_PROJECT_ID=your-project-id
 # Option A: Service account JSON (recommended for production)
 # FIREBASE_SERVICE_ACCOUNT_PATH=./config/serviceAccountKey.json
@@ -116,7 +107,6 @@ FIREBASE_PROJECT_ID=your-project-id
 GOOGLE_GENAI_API_KEY=your_gemini_api_key
 
 # ─── Stripe (OPTIONAL for dev, REQUIRED for payments) ──────────────
-# Get from: https://dashboard.stripe.com/test/apikeys
 STRIPE_SECRET_KEY=sk_test_xxxx
 STRIPE_WEBHOOK_SECRET=whsec_xxxx
 STRIPE_PRO_PRICE_ID=price_xxxx
@@ -125,36 +115,37 @@ STRIPE_ENTERPRISE_PRICE_ID=price_xxxx
 # ─── App Config ─────────────────────────────────────────────────────
 PORT=5000
 NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:3000
 DOCKER_IMAGE=latex-editor-custom
+
+# ─── CORS (Production only) ─────────────────────────────────────────
+# Set this to your Vercel deployment domain (without https://)
+# VERCEL_APP_DOMAIN=your-app.vercel.app
 ```
 
-### Frontend (`frontend/.env`)
+### Frontend (`frontend-next/.env.local`)
 
 ```bash
-cp frontend/.env.example frontend/.env
+cp frontend-next/.env.example frontend-next/.env.local
 ```
 
-Open `frontend/.env` and fill in:
+Open `frontend-next/.env.local` and fill in:
 
 ```env
-# Firebase (same values as backend)
-VITE_FIREBASE_API_KEY=AIzaSy...
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
-VITE_FIREBASE_APP_ID=1:000000000000:web:xxxxxxxx
-
-# Gemini (for any frontend AI features)
-VITE_GEMINI_API_KEY=your_gemini_api_key
+# Firebase
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=000000000000
+NEXT_PUBLIC_FIREBASE_APP_ID=1:000000000000:web:xxxxxxxx
 
 # Backend URL
-VITE_BACKEND_URL=http://localhost:5000
+NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
 
 # Stripe price IDs (publishable — safe to expose)
-VITE_STRIPE_PRO_PRICE_ID=price_xxxx
-VITE_STRIPE_ENTERPRISE_PRICE_ID=price_xxxx
+NEXT_PUBLIC_STRIPE_PRO_PRICE_ID=price_xxxx
+NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID=price_xxxx
 ```
 
 ### Firebase Setup
@@ -238,46 +229,35 @@ You should see:
 {"timestamp":"...","level":"info","message":"Server started","port":5000,"features":["rate-limiting","circuit-breaker","caching","job-queue","structured-logging"]}
 ```
 
-### Terminal 2: Start Frontend
+### Terminal 2: Start Frontend (Next.js)
 
 ```bash
-cd frontend
+cd frontend-next
 npm run dev
 ```
 
 You should see:
 ```
-  VITE v7.x.x  ready in 500ms
-
-  ➜  Local:   http://localhost:5173/
+  ▲ Next.js 15.x.x
+  - Local:        http://localhost:3000
 ```
 
 ### Open the App
 
-Navigate to **http://localhost:5173** in your browser.
+Navigate to **http://localhost:3000** in your browser.
 
 You should see the landing page. Click "Get Started Free" to sign in with Google.
 
 ### Verify Everything Works
 
-1. **Sign in** with Google — should redirect to the app
+1. **Sign in** with Google — should redirect to the builder
 2. **Fill the resume form** — go through all 8 steps
-3. **Pick a template** and click "Compile PDF" — should generate a PDF in the preview
-4. **Try AI Analysis** — switch to "AI Consultant" tab and analyze your resume
-5. **Check the health endpoint** — open `http://localhost:5000/health` in browser
-
-The health endpoint should return:
-```json
-{
-  "status": "ok",
-  "uptime": 123.456,
-  "services": {
-    "subscription": { "subscription": { "size": 0, "hits": 0, "misses": 0 } },
-    "ai": { "circuit": { "state": "CLOSED", "failures": 0 } },
-    "compile": { "queue": { "running": 0, "queued": 0 } }
-  }
-}
-```
+3. **Try AI Bullet Rewriting** — click the sparkle icon next to any bullet point
+4. **Pick a template** and click "Generate Resume" — should generate a PDF in the preview
+5. **Check the ATS Score Widget** — floating button at bottom-right of builder/editor
+6. **Try AI Interview Prep** — navigate to Interview tab in the top nav
+7. **Try Career Insights** — navigate to Career tab and explore all 7 AI tabs
+8. **Check the health endpoint** — open `http://localhost:5000/health` in browser
 
 ---
 
@@ -464,15 +444,15 @@ The CD pipeline at `.github/workflows/cd.yml` deploys on push to `main`. You nee
 
 | Secret | Value |
 |---|---|
-| `VITE_FIREBASE_API_KEY` | Your Firebase API key |
-| `VITE_FIREBASE_AUTH_DOMAIN` | your-project.firebaseapp.com |
-| `VITE_FIREBASE_PROJECT_ID` | your-project-id |
-| `VITE_FIREBASE_STORAGE_BUCKET` | your-project.firebasestorage.app |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Your sender ID |
-| `VITE_FIREBASE_APP_ID` | Your app ID |
-| `VITE_BACKEND_URL` | https://api.your-domain.com |
-| `VITE_STRIPE_PRO_PRICE_ID` | price_xxxx |
-| `VITE_STRIPE_ENTERPRISE_PRICE_ID` | price_xxxx |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | Your Firebase API key |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | your-project.firebaseapp.com |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | your-project-id |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | your-project.firebasestorage.app |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Your sender ID |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | Your app ID |
+| `NEXT_PUBLIC_BACKEND_URL` | https://api.your-domain.com |
+| `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID` | price_xxxx |
+| `NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID` | price_xxxx |
 
 4. **Uncomment the deploy step** in `cd.yml` for your platform (Railway, Render, Fly.io, or SSH)
 
@@ -489,14 +469,21 @@ The CD pipeline at `.github/workflows/cd.yml` deploys on push to `main`. You nee
 
 ## 10. Deploying to Cloud Platforms
 
-### Option A: Railway (Easiest)
+### Option A: Vercel (Frontend) + Railway/Render (Backend)
 
+**Frontend (Vercel):**
+1. Go to [vercel.com](https://vercel.com/) and import your GitHub repo
+2. Set root directory to `frontend-next`
+3. Add environment variables (`NEXT_PUBLIC_*`) in Vercel dashboard
+4. Deploy — Vercel handles SSR, SSG, edge, SSL, and domains
+
+**Backend (Railway):**
 1. Go to [railway.app](https://railway.app/) and connect your GitHub repo
-2. Railway auto-detects the project structure
+2. Set root directory to `backend`
 3. Add environment variables in the Railway dashboard
-4. Deploy — Railway handles Docker, SSL, domains
+4. Set `VERCEL_APP_DOMAIN=your-app.vercel.app` for CORS
 
-### Option B: Render
+### Option B: Render (Full Stack)
 
 1. Go to [render.com](https://render.com/)
 2. Create a new **Web Service** from your GitHub repo
@@ -569,7 +556,7 @@ All backend logs are structured JSON:
 
 ```json
 {
-  "timestamp": "2026-04-19T12:00:00.000Z",
+  "timestamp": "2026-04-20T12:00:00.000Z",
   "level": "info",
   "requestId": "a1b2c3d4-...",
   "method": "POST",
@@ -642,8 +629,8 @@ Access to fetch has been blocked by CORS policy
 ```
 
 **Fix:**
-- Development: Make sure `FRONTEND_URL=http://localhost:5173` is in `backend/.env`
-- Production: Set `FRONTEND_URL=https://your-actual-domain.com` in `backend/.env`
+- Development: Make sure `FRONTEND_URL=http://localhost:3000` is in `backend/.env`
+- Production: Set `FRONTEND_URL=https://your-actual-domain.com` and `VERCEL_APP_DOMAIN=your-app.vercel.app` in `backend/.env`
 
 ### Firebase auth fails
 
@@ -683,7 +670,7 @@ All tests are self-contained and don't need external services — if they fail, 
 | Command | Purpose |
 |---|---|
 | `cd backend && npm run dev` | Start backend (development) |
-| `cd frontend && npm run dev` | Start frontend (development) |
+| `cd frontend-next && npm run dev` | Start frontend (development) |
 | `cd backend && npm test` | Run all 21 tests |
 | `cd backend && npm run check` | Syntax check all JS files |
 | `docker build -t latex-editor-custom .` | Build LaTeX compiler image |

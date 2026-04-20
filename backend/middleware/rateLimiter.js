@@ -95,11 +95,24 @@ const templateLimiter = rateLimit({
     keyGenerator,
 });
 
+const roastLimiter = rateLimit({
+    windowMs: 24 * 60 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.user?.uid || req.ip,
+    message: {
+        error: 'Roast limit reached',
+        message: 'You have reached your daily resume roast limit. Come back tomorrow!',
+    },
+});
+
 module.exports = {
     globalLimiter,
     compileLimiter,
     aiLimiter,
     uploadLimiter,
     templateLimiter,
+    roastLimiter,
     rateLimitHeaders,
 };

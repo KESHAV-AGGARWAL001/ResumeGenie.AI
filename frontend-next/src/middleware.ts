@@ -8,5 +8,5 @@ export function middleware(_request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/builder/:path*', '/editor/:path*', '/analyzer/:path*', '/career/:path*'],
+  matcher: ['/builder/:path*', '/editor/:path*', '/analyzer/:path*', '/career/:path*', '/interview-prep/:path*'],
 };

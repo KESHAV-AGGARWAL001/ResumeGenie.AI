@@ -20,13 +20,13 @@ function generateHeader(personalInfo, socialProfiles = {}) {
     // Social Links
     let socialLine = '';
     if (socialProfiles.linkedin) {
-        socialLine += `\\href{${socialProfiles.linkedin}}{LinkedIn} | `;
+        socialLine += `\\href{${escapeLaTeX(socialProfiles.linkedin)}}{LinkedIn} | `;
     }
     if (socialProfiles.github) {
-        socialLine += `\\href{${socialProfiles.github}}{GitHub} | `;
+        socialLine += `\\href{${escapeLaTeX(socialProfiles.github)}}{GitHub} | `;
     }
     if (socialProfiles.portfolio) {
-        socialLine += `\\href{${socialProfiles.portfolio}}{Portfolio}`;
+        socialLine += `\\href{${escapeLaTeX(socialProfiles.portfolio)}}{Portfolio}`;
     }
     // Simple social line for now, can be improved
 

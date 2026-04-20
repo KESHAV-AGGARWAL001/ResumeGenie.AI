@@ -125,4 +125,51 @@ export interface BlogFrontmatter {
   readingTime?: string;
 }
 
-export type AppMode = 'form' | 'editor' | 'resume-analyzer' | 'career-insights';
+export type AppMode = 'form' | 'editor' | 'resume-analyzer' | 'career-insights' | 'interview-prep';
+
+export interface BulletRewrite {
+  text: string;
+  methodology: string;
+  improvement: string;
+}
+
+export interface BulletRewriteResult {
+  rewrites: BulletRewrite[];
+}
+
+export interface QuickATSResult {
+  score: number;
+  missingKeywords: string[];
+  topSuggestion: string;
+}
+
+export interface InterviewQuestion {
+  question: string;
+  sampleAnswer: string;
+  tip: string;
+}
+
+export interface InterviewPrepResult {
+  questions: InterviewQuestion[];
+}
+
+export interface LinkedInParseResult {
+  resumeData: Partial<ResumeData>;
+  confidence: number;
+}
+
+export interface SalaryEstimate {
+  low: number;
+  median: number;
+  high: number;
+  currency: string;
+  factors: string[];
+  negotiationTips: string[];
+}
+
+export interface RoastResult {
+  roastScore: number;
+  roast: string;
+  improvements: string[];
+  memeVerdict: string;
+}

@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { Linkedin } from 'lucide-react';
 import type { ResumeData } from '@/lib/types';
+import LinkedInImportModal from '@/components/builder/LinkedInImportModal';
 import PersonalInfoForm from '@/components/builder/PersonalInfoForm';
 import SocialProfilesForm from '@/components/builder/SocialProfilesForm';
 import ExperienceForm from '@/components/builder/ExperienceForm';
@@ -37,6 +39,7 @@ interface FormBuilderProps {
 
 export default function FormBuilder({ resumeData, onDataChange, onGenerateResume }: FormBuilderProps) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [showLinkedInModal, setShowLinkedInModal] = useState(false);
 
   const formData = resumeData || ({} as ResumeData);
 
@@ -76,8 +79,16 @@ export default function FormBuilder({ resumeData, onDataChange, onGenerateResume
           />
         </div>
 
-        {/* Step pills */}
+        {/* Step pills + LinkedIn import */}
         <div className="px-4 py-3 flex items-center gap-1 overflow-x-auto custom-scrollbar">
+          <button
+            onClick={() => setShowLinkedInModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-all bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200/60 mr-1"
+            title="Import from LinkedIn"
+          >
+            <Linkedin className="w-3.5 h-3.5" />
+            Import
+          </button>
           {STEPS.map((step) => (
             <button
               key={step.id}
@@ -177,6 +188,13 @@ export default function FormBuilder({ resumeData, onDataChange, onGenerateResume
           )}
         </div>
       </div>
+      {showLinkedInModal && (
+        <LinkedInImportModal
+          onClose={() => setShowLinkedInModal(false)}
+          onImport={onDataChange}
+          existingData={formData}
+        />
+      )}
     </div>
   );
 }

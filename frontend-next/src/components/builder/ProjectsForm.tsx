@@ -3,6 +3,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { FolderOpen, Plus, X } from 'lucide-react';
 import type { ResumeData, Project } from '@/lib/types';
+import BulletRewriter from '@/components/builder/BulletRewriter';
 
 interface ProjectsFormProps {
   data: ResumeData;
@@ -147,6 +148,11 @@ export default function ProjectsForm({ data, onChange }: ProjectsFormProps) {
                     onChange={(e) => updateBulletPoint(proj.id, index, e.target.value)}
                     placeholder="Describe what you built or achieved"
                     className="flex-1 px-4 py-2.5 rounded-xl text-sm transition-all"
+                  />
+                  <BulletRewriter
+                    bulletPoint={bullet}
+                    context={{ role: proj.name, company: '', techStack: proj.techStack || [] }}
+                    onRewrite={(text) => updateBulletPoint(proj.id, index, text)}
                   />
                   {proj.bulletPoints.length > 1 && (
                     <button

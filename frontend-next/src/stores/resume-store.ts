@@ -9,12 +9,14 @@ interface ResumeState {
   loading: boolean;
   error: string | null;
   saveStatus: string;
+  targetJD: string;
   setResumeData: (data: ResumeData) => void;
   setLatex: (latex: string) => void;
   setPdfUrl: (url: string | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setSaveStatus: (status: string) => void;
+  setTargetJD: (jd: string) => void;
 }
 
 export const useResumeStore = create<ResumeState>((set) => ({
@@ -24,10 +26,12 @@ export const useResumeStore = create<ResumeState>((set) => ({
   loading: false,
   error: null,
   saveStatus: '',
+  targetJD: '',
   setResumeData: (resumeData) => set({ resumeData }),
   setLatex: (latex) => set({ latex }),
   setPdfUrl: (pdfUrl) => set({ pdfUrl }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   setSaveStatus: (saveStatus) => set({ saveStatus }),
+  setTargetJD: (targetJD) => set({ targetJD }),
 }));

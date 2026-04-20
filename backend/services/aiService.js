@@ -242,11 +242,81 @@ function computeDeterministicScores(resumeText, jobDescription) {
     };
 }
 
+async function roastResume(resumeText) {
+    if (!ai) {
+        throw new Error("Gemini API Key not configured.");
+    }
+
+    const prompt = `
+You are a brutally honest, witty resume critic — think Simon Cowell meets a senior tech recruiter. Roast this resume with sharp humor while providing genuinely useful feedback.
+
+Resume (plain text):
+"""
+${resumeText}
+"""
+
+RULES:
+- Be funny and savage, but not mean-spirited or personal
+- Score from 0-100 (be harsh but fair)
+- The roast should be 3-4 paragraphs of entertaining critique
+- Improvements should be specific and actionable (not just "do better")
+- The meme verdict should be a short, funny one-liner summary (think Twitter energy)
+- Focus on: weak verbs, vague claims, missing metrics, buzzword overload, formatting sins, and missed opportunities
+
+Return ONLY a JSON object with this exact shape:
+{
+  "roastScore": <number 0-100>,
+  "roast": "string (3-4 paragraphs of entertaining, sharp critique)",
+  "improvements": [
+    "string (specific, actionable improvement)"
+  ],
+  "memeVerdict": "string (funny one-liner summary, e.g., 'This resume has "I peaked in college" energy')"
+}
+`;
+
+    const cacheKey = hashContent({ type: 'roast', resumeText });
+    const cached = aiCache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const result = await aiCircuit.exec(async () => {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 30000);
+            try {
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash",
+                    contents: prompt,
+                });
+                return response;
+            } finally {
+                clearTimeout(timeout);
+            }
+        });
+
+        const rawText = result.text || "";
+        if (!rawText) throw new Error("Empty response from Gemini");
+
+        const cleaned = rawText
+            .replace(/^```json\s*/gi, "")
+            .replace(/^```\s*/gi, "")
+            .replace(/```$/gi, "")
+            .trim();
+
+        const parsed = JSON.parse(cleaned);
+        aiCache.set(cacheKey, parsed);
+        return parsed;
+    } catch (error) {
+        console.error("Resume roast error:", error);
+        throw new Error("Failed to roast resume: " + error.message);
+    }
+}
+
 function getAiServiceStats() {
     return { circuit: aiCircuit.stats(), cache: aiCache.stats() };
 }
 
 module.exports = {
     evaluateResume,
+    roastResume,
     getAiServiceStats,
 };

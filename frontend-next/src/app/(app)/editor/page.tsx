@@ -6,6 +6,7 @@ import { useResumeStore } from '@/stores/resume-store';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { apiPost } from '@/lib/api';
 import PdfPreview from '@/components/preview/PdfPreview';
+import AtsScoreWidget from '@/components/builder/AtsScoreWidget';
 import toast from 'react-hot-toast';
 
 const LaTeXEditor = dynamic(() => import('@/components/editor/LaTeXEditor'), { ssr: false });
@@ -126,6 +127,8 @@ export default function EditorPage() {
           </div>
         </div>
       </div>
+
+      <AtsScoreWidget />
     </>
   );
 }

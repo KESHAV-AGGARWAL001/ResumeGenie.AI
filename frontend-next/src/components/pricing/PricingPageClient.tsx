@@ -100,6 +100,9 @@ export default function PricingPageClient() {
       const data = await res.json();
       if (!res.ok)
         throw new Error(data.error || 'Failed to create checkout session');
+      if (!data.url || !data.url.startsWith('https://checkout.stripe.com/')) {
+        throw new Error('Invalid checkout URL received');
+      }
       window.location.href = data.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -116,6 +119,9 @@ export default function PricingPageClient() {
       const data = await res.json();
       if (!res.ok)
         throw new Error(data.error || 'Failed to open subscription portal');
+      if (!data.url || !data.url.startsWith('https://billing.stripe.com/')) {
+        throw new Error('Invalid portal URL received');
+      }
       window.location.href = data.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

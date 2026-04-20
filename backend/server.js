@@ -31,6 +31,7 @@ const {
     aiLimiter,
     uploadLimiter,
     templateLimiter,
+    roastLimiter,
     rateLimitHeaders,
 } = require('./middleware/rateLimiter');
 const { requestIdMiddleware } = require('./lib/logger');
@@ -78,7 +79,7 @@ app.use(cors({
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
-        if (origin && origin.endsWith('.vercel.app')) {
+        if (process.env.VERCEL_APP_DOMAIN && origin === `https://${process.env.VERCEL_APP_DOMAIN}`) {
             return callback(null, true);
         }
         return callback(new Error(`Origin ${origin} not allowed by CORS`));
@@ -128,6 +129,21 @@ app.get('/health', (req, res) => {
 
 // ─── Route Registration ─────────────────────────────────────────────
 app.use('/compile', requireAuth, attachTier(), compileLimiter, requireUsage('compilationsToday'), compileRoute);
+// Public AI routes (no auth required) — must be registered before authenticated /ai routes
+const { roastResume: roastResumeFn } = require('./services/aiService');
+app.post('/ai/roast', optionalAuth, roastLimiter, async (req, res) => {
+    const { resumeText } = req.body;
+    if (!resumeText || typeof resumeText !== 'string' || !resumeText.trim()) {
+        return res.status(400).json({ error: 'resumeText is required and must be a non-empty string.' });
+    }
+    try {
+        const result = await roastResumeFn(resumeText.trim().slice(0, 50000));
+        res.json(result);
+    } catch (error) {
+        console.error('Resume roast error:', error.message);
+        res.status(500).json({ error: process.env.NODE_ENV === 'production' ? 'Failed to roast resume' : error.message });
+    }
+});
 app.use('/ai', requireAuth, attachTier(), aiLimiter, requireUsage('aiAnalysesToday'), aiRoute);
 app.use('/upload', requireAuth, uploadLimiter, uploadRoute);
 app.use('/resume', requireAuth, templateLimiter, resumeRoute);
@@ -138,7 +154,7 @@ app.use('/career', requireAuth, attachTier(), aiLimiter, requireUsage('aiAnalyse
 
 // ─── 404 Handler (unknown routes) ──────────────────────────────────
 app.use((req, res) => {
-    res.status(404).json({ error: 'Not Found', path: req.originalUrl });
+    res.status(404).json({ error: 'Not Found' });
 });
 
 // ─── Global Error Handler ───────────────────────────────────────────

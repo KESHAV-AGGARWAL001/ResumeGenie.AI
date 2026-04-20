@@ -54,6 +54,7 @@ export default function PdfPreview({ pdfUrl, loading, error }: PdfPreviewProps) 
             ref={iframeRef}
             src={pdfUrl}
             title="PDF Preview"
+            sandbox="allow-same-origin"
             className="w-full h-full min-h-[60vh] flex-1"
             style={{ border: 'none', background: 'transparent' }}
           />
