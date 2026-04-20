@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import AppHeader from '@/components/layout/AppHeader';
@@ -9,18 +9,20 @@ import UsageBanner from '@/components/layout/UsageBanner';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loading } = useAuthStore();
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !redirecting) {
+      setRedirecting(true);
       router.replace('/');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, redirecting]);
 
-  if (loading) {
+  if (loading || redirecting) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-slate-50/80">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-[3px] border-purple-200 border-t-purple-600 rounded-full animate-spin" />
           <span className="text-sm font-semibold text-slate-400">Loading...</span>
         </div>
       </div>

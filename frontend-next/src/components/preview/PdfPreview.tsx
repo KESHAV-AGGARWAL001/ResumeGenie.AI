@@ -1,14 +1,15 @@
 'use client';
 
 import { useRef } from 'react';
-import { FileText, Download } from 'lucide-react';
+import { FileText, Download, AlertCircle } from 'lucide-react';
 
 interface PdfPreviewProps {
   pdfUrl: string | null;
   loading: boolean;
+  error?: string | null;
 }
 
-export default function PdfPreview({ pdfUrl, loading }: PdfPreviewProps) {
+export default function PdfPreview({ pdfUrl, loading, error }: PdfPreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const handleDownload = () => {
@@ -56,9 +57,19 @@ export default function PdfPreview({ pdfUrl, loading }: PdfPreviewProps) {
             className="w-full h-full min-h-[60vh] flex-1"
             style={{ border: 'none', background: 'transparent' }}
           />
+        ) : error ? (
+          <div className="flex flex-col items-center gap-4 p-16 max-w-md">
+            <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center">
+              <AlertCircle className="w-8 h-8 text-red-400" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-bold text-red-600">Compilation Error</p>
+              <p className="text-xs text-red-400 mt-2 leading-relaxed">{error}</p>
+            </div>
+          </div>
         ) : (
           <div className="flex flex-col items-center gap-4 p-16">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-200/60 flex items-center justify-center animate-bounce-subtle">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-200/60 flex items-center justify-center">
               <FileText className="w-9 h-9 text-slate-300" />
             </div>
             <div className="text-center">

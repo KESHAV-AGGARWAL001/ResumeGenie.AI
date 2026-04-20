@@ -13,14 +13,17 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const { setResumeData, setLatex } = useResumeStore();
 
   useEffect(() => {
+    let cancelled = false;
+
     const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      if (cancelled) return;
+
       setUser(authUser);
-      setLoading(false);
 
       if (authUser) {
         try {
           const subRes = await apiGet('/payments/status');
-          if (subRes.ok) {
+          if (!cancelled && subRes.ok) {
             const subData = await subRes.json();
             setSubscription(subData.subscription || { tier: 'free', status: 'active' });
           }
@@ -31,7 +34,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         try {
           const docRef = doc(db, 'userResumes', authUser.uid);
           const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
+          if (!cancelled && docSnap.exists()) {
             const data = docSnap.data();
             if (data.resumeData) setResumeData(data.resumeData);
             if (data.latex) setLatex(data.latex);
@@ -40,9 +43,14 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
           // Silently fail
         }
       }
+
+      if (!cancelled) setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, [setUser, setSubscription, setLoading, setResumeData, setLatex]);
 
   return <>{children}</>;
