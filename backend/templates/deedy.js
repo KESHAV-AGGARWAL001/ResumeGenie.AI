@@ -1,4 +1,4 @@
-const { escapeLaTeX } = require('../utils/latex');
+const { escapeLaTeX, escapeURL } = require('../utils/latex');
 
 /**
  * DEEDY REVERSED TEMPLATE
@@ -10,7 +10,7 @@ function generateHeader(personalInfo, socialProfiles = {}) {
 
     let contactLine = '';
     if (email) {
-        contactLine += `\\href{mailto:${escapeLaTeX(email)}}{${escapeLaTeX(email)}}`;
+        contactLine += `\\href{mailto:${escapeURL(email)}}{${escapeLaTeX(email)}}`;
     }
     if (phone) {
         if (contactLine) contactLine += ' | ';
@@ -20,13 +20,13 @@ function generateHeader(personalInfo, socialProfiles = {}) {
     // Social Links
     let socialLine = '';
     if (socialProfiles.linkedin) {
-        socialLine += `\\href{${escapeLaTeX(socialProfiles.linkedin)}}{LinkedIn} | `;
+        socialLine += `\\href{${escapeURL(socialProfiles.linkedin)}}{LinkedIn} | `;
     }
     if (socialProfiles.github) {
-        socialLine += `\\href{${escapeLaTeX(socialProfiles.github)}}{GitHub} | `;
+        socialLine += `\\href{${escapeURL(socialProfiles.github)}}{GitHub} | `;
     }
     if (socialProfiles.portfolio) {
-        socialLine += `\\href{${escapeLaTeX(socialProfiles.portfolio)}}{Portfolio}`;
+        socialLine += `\\href{${escapeURL(socialProfiles.portfolio)}}{Portfolio}`;
     }
     // Simple social line for now, can be improved
 
@@ -61,7 +61,7 @@ function generateProjects(projects) {
             latex += `\\descript{| ${project.techStack.map(t => escapeLaTeX(t)).join(', ')}}\n`;
         }
         if (project.link) {
-            latex += `\\location{\\href{${escapeLaTeX(project.link)}}{${escapeLaTeX(project.link)}}}\n`;
+            latex += `\\location{\\href{${escapeURL(project.link)}}{${escapeLaTeX(project.link)}}}\n`;
         }
         latex += '\\begin{tightemize}\n';
         project.bulletPoints.forEach(point => latex += `\\item ${escapeLaTeX(point)}\n`);
@@ -131,14 +131,14 @@ function generateSocialLinks(socialProfiles) {
     const createLink = (name, url) => {
         if (!url) return '';
         const username = url.split('/').pop() || name;
-        return `${name}:// \\href{${escapeLaTeX(url)}}{\\bf ${escapeLaTeX(username)}} \\\\\n`;
+        return `${name}:// \\href{${escapeURL(url)}}{\\bf ${escapeLaTeX(username)}} \\\\\n`;
     };
 
     latex += createLink('GitHub', socialProfiles.github);
     latex += createLink('LinkedIn', socialProfiles.linkedin);
     latex += createLink('LeetCode', socialProfiles.leetcode);
     latex += createLink('Stats', socialProfiles.codechef); // Reusing logic
-    if (socialProfiles.portfolio) latex += `Portfolio:// \\href{${escapeLaTeX(socialProfiles.portfolio)}}{\\bf Portfolio} \\\\\n`;
+    if (socialProfiles.portfolio) latex += `Portfolio:// \\href{${escapeURL(socialProfiles.portfolio)}}{\\bf Portfolio} \\\\\n`;
 
     // Add others logic if needed
     latex += '\\sectionsep\n\n';

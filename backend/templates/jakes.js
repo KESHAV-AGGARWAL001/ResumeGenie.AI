@@ -1,4 +1,4 @@
-const { escapeLaTeX } = require('../utils/latex');
+const { escapeLaTeX, escapeURL } = require('../utils/latex');
 
 function generate(data) {
   const { personalInfo, socialProfiles, experience, projects, skills, education, certifications } = data;
@@ -9,10 +9,10 @@ function generate(data) {
 \\begin{center}
     {\\Huge \\scshape ${escapeLaTeX(personalInfo.name)}} \\\\ \\vspace{1pt}
     ${personalInfo.location ? escapeLaTeX(personalInfo.location) + ' \\\\' : ''} 
-    \\small \\href{mailto:${escapeLaTeX(personalInfo.email)}}{${escapeLaTeX(personalInfo.email)}} $|$ 
-    \\href{tel:${personalInfo.phone}}{${escapeLaTeX(personalInfo.phone)}} $|$ 
-    \\href{${escapeLaTeX(socialProfiles.linkedin)}}{LinkedIn} $|$
-    \\href{${escapeLaTeX(socialProfiles.github)}}{GitHub}
+    \\small \\href{mailto:${escapeURL(personalInfo.email)}}{${escapeLaTeX(personalInfo.email)}} $|$
+    \\href{tel:${personalInfo.phone}}{${escapeLaTeX(personalInfo.phone)}} $|$
+    \\href{${escapeURL(socialProfiles.linkedin)}}{LinkedIn} $|$
+    \\href{${escapeURL(socialProfiles.github)}}{GitHub}
 \\end{center}
 `;
 
@@ -50,7 +50,7 @@ function generate(data) {
     projects.forEach(proj => {
       projectsSection += `
       \\resumeProjectHeading
-      {\\textbf{${escapeLaTeX(proj.name)}} $|$ \\emph{${proj.techStack ? proj.techStack.map(t => escapeLaTeX(t)).join(', ') : ''}}}{${proj.link ? '\\href{' + escapeLaTeX(proj.link) + '}{Link}' : ''}}
+      {\\textbf{${escapeLaTeX(proj.name)}} $|$ \\emph{${proj.techStack ? proj.techStack.map(t => escapeLaTeX(t)).join(', ') : ''}}}{${proj.link ? '\\href{' + escapeURL(proj.link) + '}{Link}' : ''}}
       \\resumeItemListStart
       `;
       proj.bulletPoints.forEach(bp => {

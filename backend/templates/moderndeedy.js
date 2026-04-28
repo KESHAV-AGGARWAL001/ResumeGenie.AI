@@ -1,4 +1,4 @@
-const { escapeLaTeX } = require('../utils/latex');
+const { escapeLaTeX, escapeURL } = require('../utils/latex');
 
 function generate(data) {
     const { personalInfo, socialProfiles, experience, projects, skills, education } = data;
@@ -6,10 +6,10 @@ function generate(data) {
     const header = `
 \\namesection{${escapeLaTeX(personalInfo.name)}}{ 
 \\urlstyle{same}
-\\href{mailto:${escapeLaTeX(personalInfo.email)}}{${escapeLaTeX(personalInfo.email)}} | 
+\\href{mailto:${escapeURL(personalInfo.email)}}{${escapeLaTeX(personalInfo.email)}} |
 \\href{tel:${personalInfo.phone}}{${escapeLaTeX(personalInfo.phone)}} |
-\\href{${escapeLaTeX(socialProfiles.linkedin)}}{LinkedIn} |
-\\href{${escapeLaTeX(socialProfiles.github)}}{GitHub}
+\\href{${escapeURL(socialProfiles.linkedin)}}{LinkedIn} |
+\\href{${escapeURL(socialProfiles.github)}}{GitHub}
 }
 `;
 
@@ -49,7 +49,7 @@ function generate(data) {
             \\runsubsection{${escapeLaTeX(proj.name)}}
             \\descript{| ${proj.techStack ? proj.techStack.map(t => escapeLaTeX(t)).join(', ') : ''}}
             \\hfill
-            \\location{\\href{${escapeLaTeX(proj.link)}}{Link}}
+            \\location{\\href{${escapeURL(proj.link)}}{Link}}
             \\begin{tightemize}
             ${proj.bulletPoints.map(bp => `\\item ${escapeLaTeX(bp)}`).join('\n')}
             \\end{tightemize}

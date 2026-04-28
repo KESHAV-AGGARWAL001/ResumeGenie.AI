@@ -21,6 +21,22 @@ function escapeLaTeX(text) {
 }
 
 /**
+ * Sanitize a URL for use inside \href{}.
+ * hyperref handles most special characters natively (_, #, ~, ^, $, &),
+ * but \, {, }, and % can break out of the argument or start commands.
+ */
+function escapeURL(url) {
+    if (!url) return '';
+    if (typeof url !== 'string') return String(url);
+
+    return url
+        .replace(/\\/g, '/')
+        .replace(/%/g, '\\%')
+        .replace(/\{/g, '\\{')
+        .replace(/\}/g, '\\}');
+}
+
+/**
  * Format date string (e.g. "2023-01-01" -> "Jan 2023")
  */
 function formatDate(dateStr) {
@@ -31,5 +47,6 @@ function formatDate(dateStr) {
 
 module.exports = {
     escapeLaTeX,
+    escapeURL,
     formatDate
 };

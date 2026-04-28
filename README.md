@@ -553,7 +553,7 @@ cd frontend-next && npm install && cd ..
 
 # Configure environment
 cp backend/.env.example backend/.env         # Fill in your keys
-cp frontend-next/.env.example frontend-next/.env  # Fill in your keys
+cp frontend-next/.env.example frontend-next/.env.local  # Fill in your keys
 
 # Build LaTeX Docker image
 docker build -t latex-editor-custom .

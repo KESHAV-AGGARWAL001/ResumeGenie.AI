@@ -1,4 +1,4 @@
-const { escapeLaTeX } = require('../utils/latex');
+const { escapeLaTeX, escapeURL } = require('../utils/latex');
 
 function generate(data) {
   const { personalInfo, socialProfiles, experience, projects, skills, education, achievements, certifications } = data;
@@ -13,9 +13,9 @@ function generate(data) {
 
   const header = `
 \\begin{tabular*}{\\textwidth}{l@{\\extracolsep{\\fill}}r}
-  \\textbf{{\\LARGE ${escapeLaTeX(personalInfo.name)}}} & Email: \\href{mailto:${escapeLaTeX(personalInfo.email)}}{${escapeLaTeX(personalInfo.email)}}\\\\
-  \\href{${escapeLaTeX(socialProfiles.portfolio || '')}}{Portfolio: ${escapeLaTeX(socialProfiles.portfolio || '')}} & Mobile:~~~${escapeLaTeX(personalInfo.phone)} \\\\
-  \\href{${escapeLaTeX(socialProfiles.github || '')}}{Github: ~~${escapeLaTeX(socialProfiles.github || '')}} \\\\
+  \\textbf{{\\LARGE ${escapeLaTeX(personalInfo.name)}}} & Email: \\href{mailto:${escapeURL(personalInfo.email)}}{${escapeLaTeX(personalInfo.email)}}\\\\
+  \\href{${escapeURL(socialProfiles.portfolio || '')}}{Portfolio: ${escapeLaTeX(socialProfiles.portfolio || '')}} & Mobile:~~~${escapeLaTeX(personalInfo.phone)} \\\\
+  \\href{${escapeURL(socialProfiles.github || '')}}{Github: ~~${escapeLaTeX(socialProfiles.github || '')}} \\\\
 \\end{tabular*}
 `;
 
